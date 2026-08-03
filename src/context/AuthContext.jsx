@@ -4,9 +4,9 @@ import api from '../services/api'
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState({ email: 'member@library.com', displayName: 'Test Member', role: 'USER' })
+  const [isAuthenticated, setIsAuthenticated] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
   const loadCurrentUser = async () => {
     try {

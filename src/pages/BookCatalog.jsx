@@ -1,33 +1,33 @@
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import BookCard from '../components/BookCard'
 import '../styles/catalog.css'
 
-const Dashboard = () => {
-  const { user } = useAuth()
+const BookCatalog = () => {
   
   // Lists
-  const [topRatedBooks, setTopRatedBooks] = useState([])
-  const [topLoansBooks, setTopLoansBooks] = useState([])
-  // Load books
+  const [books, setBooks] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Load books on mount
   useEffect(() => {
-    loadDashboardData()
+    fetchBooks()
   }, [])
 
-  const loadDashboardData = async () => {
+  const fetchBooks = async (query = '') => {
+    setIsLoading(true)
     try {
-      const response = await api.get('/api/books')
-      const allBooks = response.data || []
-      
-      // Separate or mock top rated/loans
-      setTopRatedBooks(allBooks.slice(0, 5))
-      setTopLoansBooks(allBooks.slice(2, 7))
+      let response
+      if (query) {
+        response = await api.get(`/api/books/search?q=${encodeURIComponent(query)}`)
+      } else {
+        response = await api.get('/api/books')
+      }
+      setBooks(response.data || [])
     } catch (error) {
-      console.error('Failed to load dashboard books, loading mock data:', error)
-      
-      const mockList = [
+      console.error('Failed to fetch books, loading mock data for UI testing:', error)
+      setBooks([
         {
           id: 1,
           title: 'Clean Code: A Handbook of Agile Software Craftsmanship',
@@ -42,9 +42,9 @@ const Dashboard = () => {
           currencyCode: 'VND',
           publisher: { id: 1, name: 'Prentice Hall' },
           authors: [{ id: 1, name: 'Robert C. Martin' }],
-          categories: [{ id: 1, name: 'Software Engineering' }],
+          categories: [{ id: 1, name: 'Software Engineering' }, { id: 2, name: 'Programming' }],
           availableCopies: 5,
-          rating: 4.75
+          rating: 4.5
         },
         {
           id: 2,
@@ -78,58 +78,64 @@ const Dashboard = () => {
           currencyCode: 'VND',
           publisher: { id: 3, name: 'Packt Publishing' },
           authors: [{ id: 4, name: 'Robert S. Sutor' }],
-          categories: [{ id: 2, name: 'Programming' }],
+          categories: [{ id: 2, name: 'Programming' }, { id: 3, name: 'Quantum Physics' }],
           availableCopies: 3,
-          rating: 4.0
+          rating: 4.75
         }
-      ]
-      
-      setTopRatedBooks(mockList)
-      setTopLoansBooks([...mockList].reverse())
+      ])
+    } finally {
+      setIsLoading(false)
     }
   }
 
-
-
   return (
-    <div className="fx-home-page" style={{ backgroundColor: '#e0e0e0', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="fx-catalog-page">
       {/* Shared Header Navigation */}
-      <Navbar />
+      <Navbar onSearch={fetchBooks} />
 
-      <main className="fx-dashboard-container">
-        {/* Welcome Header */}
-        <h1 className="fx-welcome-title">Welcome, {user?.displayName || 'Guest'}</h1>
+      {/* Main Content Area */}
+      <main className="fx-content-container">
+        <h2 className="fx-results-count">{books.length} results found</h2>
 
-        {/* Top Rated Section */}
-        <section className="fx-section-container">
-          <h2 className="fx-section-title">Top Rated</h2>
-          <div className="fx-horizontal-scroll">
-            {topRatedBooks.map((book) => (
+        {isLoading ? (
+          <div className="catalog-loader-container">
+            <div className="catalog-spinner"></div>
+            <p>Loading catalog items...</p>
+          </div>
+        ) : books.length === 0 ? (
+          <div className="catalog-empty-container">
+            <svg
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ color: '#86868c', marginBottom: '1.5rem' }}
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            <h3>No Books Found</h3>
+            <p>We couldn't find any books. Try another query.</p>
+          </div>
+        ) : (
+          /* Book Grid */
+          <div className="fx-book-grid">
+            {books.map((book) => (
               <BookCard
-                key={`rated-${book.id}`}
+                key={book.id}
                 book={book}
-                showRating={true}
+                showRating={false}
               />
             ))}
           </div>
-        </section>
-
-        {/* Top Loans Section */}
-        <section className="fx-section-container">
-          <h2 className="fx-section-title">Top Loans</h2>
-          <div className="fx-horizontal-scroll">
-            {topLoansBooks.map((book) => (
-              <BookCard
-                key={`loaned-${book.id}`}
-                book={book}
-                showRating={true}
-              />
-            ))}
-          </div>
-        </section>
+        )}
       </main>
     </div>
   )
 }
 
-export default Dashboard
+export default BookCatalog

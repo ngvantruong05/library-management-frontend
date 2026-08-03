@@ -5,6 +5,7 @@ import Login from '../pages/Login'
 import Register from '../pages/Register'
 import Dashboard from '../pages/Dashboard'
 import AdminDashboard from '../pages/AdminDashboard'
+import BookCatalog from '../pages/BookCatalog'
 
 // Guards against logged-out users accessing private pages
 const ProtectedRoute = ({ children }) => {
@@ -101,6 +102,14 @@ const AppRoutes = () => {
           <AdminRoute>
             <AdminDashboard />
           </AdminRoute>
+        }
+      />
+      <Route
+        path="/books"
+        element={
+          <ProtectedRoute>
+            <BookCatalog />
+          </ProtectedRoute>
         }
       />
       <Route

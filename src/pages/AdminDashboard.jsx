@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import '../styles/dashboard.css'
 
@@ -103,9 +104,9 @@ const AdminDashboard = () => {
             <p style={{ color: '#9ca3af', fontSize: '0.95rem', lineHeight: '1.5' }}>
               Add new books, edit existing catalog items, adjust copies count, and manage genres/categories.
             </p>
-            <button className="db-action-btn" style={{ borderColor: 'rgba(245, 158, 11, 0.3)', color: '#fbbf24' }}>
+            <Link to="/books" className="db-action-btn" style={{ borderColor: 'rgba(245, 158, 11, 0.3)', color: '#fbbf24' }}>
               Manage Books & Categories
-            </button>
+            </Link>
           </div>
 
           <div className="db-card">
