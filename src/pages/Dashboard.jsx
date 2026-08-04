@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import BookCard from '../components/BookCard'
+import BookDetailsModal from '../components/BookDetailsModal'
 import '../styles/catalog.css'
 
 const Dashboard = () => {
@@ -11,6 +12,20 @@ const Dashboard = () => {
   // Lists
   const [topRatedBooks, setTopRatedBooks] = useState([])
   const [topLoansBooks, setTopLoansBooks] = useState([])
+  
+  // States
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [notification, setNotification] = useState(null)
+
+  // Show Toast
+  const showToast = (message, type = 'success') => {
+    setNotification({ message, type })
+    setTimeout(() => {
+      setNotification(null)
+    }, 4000)
+  }
+
   // Load books
   useEffect(() => {
     loadDashboardData()
@@ -89,10 +104,39 @@ const Dashboard = () => {
     }
   }
 
+  // Handle open details modal
+  const handleOpenDetail = (book) => {
+    setSelectedBook(book)
+    setShowDetailModal(true)
+  }
 
+  // Handle borrow request
+  const handleBorrowSubmit = async (book, type) => {
+    try {
+      const payload = {
+        bookId: book.id,
+        type: type,
+        numCopies: type === 'OFFLINE' ? 1 : 0,
+      }
+      await api.post('/api/book-loans', payload)
+      showToast(`Requested borrow ${book.title} successfully as ${type}!`)
+      setShowDetailModal(false)
+    } catch (error) {
+      console.error('Failed to request borrow:', error)
+      const errorMsg = error.response?.data?.message || 'Failed to request book loan'
+      showToast(errorMsg, 'error')
+    }
+  }
 
   return (
     <div className="fx-home-page" style={{ backgroundColor: '#e0e0e0', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`notification-banner ${notification.type === 'error' ? 'notification-error' : 'notification-success'}`}>
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       {/* Shared Header Navigation */}
       <Navbar />
 
@@ -108,6 +152,7 @@ const Dashboard = () => {
               <BookCard
                 key={`rated-${book.id}`}
                 book={book}
+                onClick={handleOpenDetail}
                 showRating={true}
               />
             ))}
@@ -122,12 +167,21 @@ const Dashboard = () => {
               <BookCard
                 key={`loaned-${book.id}`}
                 book={book}
+                onClick={handleOpenDetail}
                 showRating={true}
               />
             ))}
           </div>
         </section>
       </main>
+
+      {/* View Book Modal details */}
+      <BookDetailsModal
+        show={showDetailModal}
+        book={selectedBook}
+        onClose={() => setShowDetailModal(false)}
+        onBorrow={handleBorrowSubmit}
+      />
     </div>
   )
 }

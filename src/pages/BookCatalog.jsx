@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import BookCard from '../components/BookCard'
+import BookDetailsModal from '../components/BookDetailsModal'
 import '../styles/catalog.css'
 
 const BookCatalog = () => {
@@ -9,6 +10,19 @@ const BookCatalog = () => {
   // Lists
   const [books, setBooks] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [notification, setNotification] = useState(null)
+  
+  // Modals
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedBook, setSelectedBook] = useState(null)
+
+  // Show Toast notification
+  const showToast = (message, type = 'success') => {
+    setNotification({ message, type })
+    setTimeout(() => {
+      setNotification(null)
+    }, 4000)
+  }
 
   // Load books on mount
   useEffect(() => {
@@ -88,8 +102,39 @@ const BookCatalog = () => {
     }
   }
 
+  // Open book detailed view
+  const handleOpenDetail = (book) => {
+    setSelectedBook(book)
+    setShowDetailModal(true)
+  }
+
+  // Submit borrow request
+  const handleBorrowSubmit = async (book, type) => {
+    try {
+      const payload = {
+        bookId: book.id,
+        type: type,
+        numCopies: type === 'OFFLINE' ? 1 : 0,
+      }
+      await api.post('/api/book-loans', payload)
+      showToast(`Requested borrow ${book.title} successfully as ${type}!`)
+      setShowDetailModal(false)
+    } catch (error) {
+      console.error('Failed to request borrow:', error)
+      const errorMsg = error.response?.data?.message || 'Failed to request book loan'
+      showToast(errorMsg, 'error')
+    }
+  }
+
   return (
     <div className="fx-catalog-page">
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`notification-banner ${notification.type === 'error' ? 'notification-error' : 'notification-success'}`}>
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       {/* Shared Header Navigation */}
       <Navbar onSearch={fetchBooks} />
 
@@ -128,12 +173,21 @@ const BookCatalog = () => {
               <BookCard
                 key={book.id}
                 book={book}
+                onClick={handleOpenDetail}
                 showRating={false}
               />
             ))}
           </div>
         )}
       </main>
+
+      {/* Book Detailed View Dialog */}
+      <BookDetailsModal
+        show={showDetailModal}
+        book={selectedBook}
+        onClose={() => setShowDetailModal(false)}
+        onBorrow={handleBorrowSubmit}
+      />
     </div>
   )
 }
