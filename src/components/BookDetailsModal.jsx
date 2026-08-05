@@ -1,7 +1,39 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import api from '../services/api'
 
-const BookDetailsModal = ({ show, book, onClose, onBorrow }) => {
+const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) => {
   const [isFavorite, setIsFavorite] = useState(false)
+
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      try {
+        const response = await api.get(`/api/favorites/check/${book.id}`)
+        setIsFavorite(response.data?.isFavorite || false)
+      } catch (error) {
+        console.error('Failed to check favorite status:', error)
+      }
+    }
+
+    if (show && book?.id) {
+      checkFavoriteStatus()
+    }
+  }, [show, book])
+
+  const handleToggleFavorite = async () => {
+    try {
+      if (isFavorite) {
+        await api.delete(`/api/favorites/${book.id}`)
+        setIsFavorite(false)
+        if (onToggleFavorite) onToggleFavorite(book.id, false)
+      } else {
+        await api.post(`/api/favorites/${book.id}`)
+        setIsFavorite(true)
+        if (onToggleFavorite) onToggleFavorite(book.id, true)
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error)
+    }
+  }
 
   if (!show || !book) return null
 
@@ -141,7 +173,7 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow }) => {
                   </button>
                   <button 
                     className={`fx-btn-favorite ${isFavorite ? 'active' : ''}`}
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={handleToggleFavorite}
                     title={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
                   >
                     ♥

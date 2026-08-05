@@ -6,6 +6,7 @@ import Register from '../pages/Register'
 import Dashboard from '../pages/Dashboard'
 import AdminDashboard from '../pages/AdminDashboard'
 import BookCatalog from '../pages/BookCatalog'
+import MyFavorites from '../pages/MyFavorites'
 
 // Guards against logged-out users accessing private pages
 const ProtectedRoute = ({ children }) => {
@@ -109,6 +110,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <BookCatalog />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/favorites"
+        element={
+          <ProtectedRoute>
+            <MyFavorites />
           </ProtectedRoute>
         }
       />
