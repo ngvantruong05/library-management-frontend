@@ -56,7 +56,7 @@ const MyFavorites = () => {
   }
 
   return (
-    <div className="fx-catalog-page" style={{ backgroundColor: '#e0e0e0', minHeight: '100vh' }}>
+    <div className="fx-catalog-page" style={{ minHeight: '100vh' }}>
       <Navbar />
 
       <main className="fx-content-container">

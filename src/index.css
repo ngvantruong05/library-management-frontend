@@ -1,19 +1,86 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-body {
+:root {
+  --font-primary: 'Poppins', sans-serif;
+  --transition-speed: 0.25s;
+
+  /* Default theme values (Light mode) */
+  --bg-primary: #e0e0e0;       /* -fx-bg */
+  --bg-secondary: #ffffff;     /* card / dialog panels */
+  --bg-tertiary: #e6e6e6;      /* -fx-bg-light / navbar */
+  --bg-input: #dadada;         /* -fx-fg */
+  --bg-input-focus: #ffffff;
+  
+  --text-primary: #111111;     /* -fx-text */
+  --text-secondary: #232323;   /* -fx-label */
+  --text-muted: #71717a;       /* -fx-prompt-text-fill */
+  
+  --color-primary: #3b82f6;    /* -fx-primary */
+  --color-primary-hover: #60a5fa;
+  --color-primary-light: #93c5fd;
+  --color-primary-bg: rgba(59, 130, 246, 0.12);
+  
+  --color-secondary: #f59e0b;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-heart: #fb7185;
+  --color-heart-bg: rgba(251, 113, 133, 0.2);
+  
+  --border-color: #dadada;
+  --border-focused: #3b82f6;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.theme-light {
+  /* Inherits everything from :root */
+}
+
+.theme-dark {
+  --bg-primary: #18181b;       /* dark background */
+  --bg-secondary: #27272a;     /* dark card / panel */
+  --bg-tertiary: #1f1f23;      /* dark navbar */
+  --bg-input: #3f3f46;         /* dark input */
+  --bg-input-focus: #27272a;
+  
+  --text-primary: #d4d4d8;     /* dark text */
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-light: #93c5fd;
+  --color-primary-bg: rgba(59, 130, 246, 0.2);
+  
+  --color-secondary: #f59e0b;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-heart: #fb7185;
+  --color-heart-bg: rgba(251, 113, 133, 0.25);
+  
+  --border-color: #3f3f46;
+  --border-focused: #3b82f6;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+html, body {
   margin: 0;
   padding: 0;
-  background-color: #e0e0e0;
-  color: #111111;
-  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-speed) ease;
 }
 
 * {

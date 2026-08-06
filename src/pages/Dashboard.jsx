@@ -129,7 +129,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="fx-home-page" style={{ backgroundColor: '#e0e0e0', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="fx-home-page" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Toast Notification */}
       {notification && (
         <div className={`notification-banner ${notification.type === 'error' ? 'notification-error' : 'notification-success'}`}>

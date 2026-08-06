@@ -1,12 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 
 const Navbar = ({ onSearch }) => {
   const { user, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [localQuery, setLocalQuery] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
+
+  // Handle clicking outside to close dropdown
+  useEffect(() => {
+    const handleClose = () => setShowDropdown(false)
+    window.addEventListener('click', handleClose)
+    return () => {
+      window.removeEventListener('click', handleClose)
+    }
+  }, [])
 
   const handleSearchSubmit = (e) => {
     e.preventDefault()
@@ -23,6 +35,11 @@ const Navbar = ({ onSearch }) => {
     const parts = user.displayName.split(' ')
     if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+
+  const toggleDropdown = (e) => {
+    e.stopPropagation()
+    setShowDropdown(!showDropdown)
   }
 
   return (
@@ -66,12 +83,33 @@ const Navbar = ({ onSearch }) => {
         
         {user ? (
           <div className="fx-user-menu-container">
-            <div className="fx-user-avatar" title={user.displayName || 'User Profile'}>
+            <div 
+              className="fx-user-avatar" 
+              title={user.displayName || 'User Profile'}
+              onClick={toggleDropdown}
+            >
               {getInitials()}
             </div>
-            <button className="fx-logout-btn" onClick={logout} title="Log out">
-              ✕
-            </button>
+            
+            {showDropdown && (
+              <div className="fx-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                <div className="fx-dropdown-header">
+                  <span className="fx-dropdown-name">{user.displayName || 'Người dùng'}</span>
+                  <span className="fx-dropdown-email">{user.email || ''}</span>
+                </div>
+                
+                <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
+                  <span>Giao diện:</span>
+                  <button className="fx-theme-switch-btn" onClick={toggleTheme}>
+                    {theme === 'light' ? '☀️ Sáng' : '🌙 Tối'}
+                  </button>
+                </div>
+                
+                <button className="fx-dropdown-item logout-item" onClick={logout}>
+                  Đăng xuất ➔
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <Link to="/login" className="fx-login-btn-nav" style={{
