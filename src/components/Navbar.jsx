@@ -64,14 +64,32 @@ const Navbar = ({ onSearch }) => {
           <Link to="/favorites" className={`fx-nav-link ${location.pathname === '/favorites' ? 'active' : ''}`}>My Favorites</Link>
         </nav>
         
-        <div className="fx-user-menu-container">
-          <div className="fx-user-avatar" title={user?.displayName || 'User Profile'}>
-            {getInitials()}
+        {user ? (
+          <div className="fx-user-menu-container">
+            <div className="fx-user-avatar" title={user.displayName || 'User Profile'}>
+              {getInitials()}
+            </div>
+            <button className="fx-logout-btn" onClick={logout} title="Log out">
+              ✕
+            </button>
           </div>
-          <button className="fx-logout-btn" onClick={logout} title="Log out">
-            ✕
-          </button>
-        </div>
+        ) : (
+          <Link to="/login" className="fx-login-btn-nav" style={{
+            padding: '0.4rem 1.1rem',
+            backgroundColor: '#3b82f6',
+            color: '#ffffff',
+            borderRadius: '6px',
+            fontFamily: 'Poppins',
+            fontWeight: '500',
+            textDecoration: 'none',
+            fontSize: '0.85rem',
+            transition: 'background-color 0.2s',
+            border: 'none',
+            cursor: 'pointer'
+          }}>
+            Login
+          </Link>
+        )}
       </div>
     </header>
   )

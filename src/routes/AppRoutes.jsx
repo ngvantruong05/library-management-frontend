@@ -69,7 +69,7 @@ const PublicRoute = ({ children }) => {
 }
 
 const AppRoutes = () => {
-  const { isAuthenticated, user } = useAuth()
+  const { user } = useAuth()
 
   return (
     <Routes>
@@ -91,11 +91,7 @@ const AppRoutes = () => {
       />
       <Route
         path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
+        element={<Dashboard />}
       />
       <Route
         path="/admin/dashboard"
@@ -107,11 +103,7 @@ const AppRoutes = () => {
       />
       <Route
         path="/books"
-        element={
-          <ProtectedRoute>
-            <BookCatalog />
-          </ProtectedRoute>
-        }
+        element={<BookCatalog />}
       />
       <Route
         path="/favorites"
@@ -124,14 +116,10 @@ const AppRoutes = () => {
       <Route
         path="*"
         element={
-          isAuthenticated ? (
-            user?.role === 'ADMIN' ? (
-              <Navigate to="/admin/dashboard" replace />
-            ) : (
-              <Navigate to="/dashboard" replace />
-            )
+          user?.role === 'ADMIN' ? (
+            <Navigate to="/admin/dashboard" replace />
           ) : (
-            <Navigate to="/login" replace />
+            <Navigate to="/dashboard" replace />
           )
         }
       />

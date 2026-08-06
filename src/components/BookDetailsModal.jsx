@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 
 const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) => {
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
   const [isFavorite, setIsFavorite] = useState(false)
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
+      if (!isAuthenticated) return
       try {
         const response = await api.get(`/api/favorites/check/${book.id}`)
         setIsFavorite(response.data?.isFavorite || false)
@@ -17,9 +22,18 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
     if (show && book?.id) {
       checkFavoriteStatus()
     }
-  }, [show, book])
+  }, [show, book, isAuthenticated])
+
+  const requireLogin = () => {
+    alert("Please login first to perform this action!")
+    navigate('/login')
+  }
 
   const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      requireLogin()
+      return
+    }
     try {
       if (isFavorite) {
         await api.delete(`/api/favorites/${book.id}`)
@@ -44,10 +58,18 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
   const hasHalfStar = rating % 1 !== 0
 
   const handleBorrowOnline = () => {
+    if (!isAuthenticated) {
+      requireLogin()
+      return
+    }
     onBorrow(book, 'ONLINE')
   }
 
   const handleBorrowOffline = () => {
+    if (!isAuthenticated) {
+      requireLogin()
+      return
+    }
     if (availableCopies === 0) return
     onBorrow(book, 'OFFLINE')
   }
