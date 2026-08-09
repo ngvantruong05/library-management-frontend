@@ -110,22 +110,10 @@ const Dashboard = () => {
     setShowDetailModal(true)
   }
 
-  // Handle borrow request
-  const handleBorrowSubmit = async (book, type) => {
-    try {
-      const payload = {
-        bookId: book.id,
-        type: type,
-        numCopies: type === 'OFFLINE' ? 1 : 0,
-      }
-      await api.post('/api/book-loans', payload)
-      showToast(`Requested borrow ${book.title} successfully as ${type}!`)
-      setShowDetailModal(false)
-    } catch (error) {
-      console.error('Failed to request borrow:', error)
-      const errorMsg = error.response?.data?.message || 'Failed to request book loan'
-      showToast(errorMsg, 'error')
-    }
+  // Handle borrow success notification
+  const handleBorrowSubmit = (book, type, numCopies) => {
+    showToast(`Successfully borrowed "${book.title}" (${type}${type === 'OFFLINE' ? ` - ${numCopies || 1} copies` : ''})!`)
+    setShowDetailModal(false)
   }
 
   return (

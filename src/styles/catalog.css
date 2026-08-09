@@ -832,3 +832,290 @@
     display: none; /* Hide search box on small screens */
   }
 }
+
+/* Borrow Book Modal Styling */
+.fx-borrow-modal-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-hover);
+  z-index: 1020;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: fxModalFadeIn 0.2s ease-out;
+  transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+@keyframes fxModalFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.fx-borrow-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fx-borrow-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.fx-borrow-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.fx-borrow-modal-close:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+}
+
+.fx-borrow-modal-body {
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fx-borrow-error-banner {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.fx-borrow-summary {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background-color: var(--bg-primary);
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.fx-borrow-thumb {
+  width: 55px;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.fx-borrow-info {
+  flex: 1;
+}
+
+.fx-borrow-book-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fx-borrow-book-author {
+  margin: 0 0 0.4rem 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.fx-borrow-stock-badge {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.fx-borrow-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fx-borrow-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fx-borrow-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.fx-borrow-type-card {
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.85rem;
+  cursor: pointer;
+  background-color: var(--bg-primary);
+  transition: all 0.2s ease;
+}
+
+.fx-borrow-type-card:hover:not(.disabled) {
+  border-color: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+.fx-borrow-type-card.active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-bg);
+}
+
+.fx-borrow-type-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fx-borrow-type-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.fx-borrow-type-icon {
+  font-size: 1.1rem;
+}
+
+.fx-borrow-type-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.fx-borrow-type-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.fx-borrow-copies-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fx-stepper-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.fx-stepper-btn:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.fx-stepper-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fx-stepper-input {
+  width: 60px;
+  height: 36px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.fx-stepper-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.fx-borrow-date-input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.fx-borrow-date-input:focus {
+  outline: none;
+  border-color: var(--border-focused);
+}
+
+.fx-borrow-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.fx-btn-secondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.55rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.2s;
+}
+
+.fx-btn-secondary:hover:not(:disabled) {
+  background-color: var(--bg-input);
+}
+
+.fx-btn-primary-borrow {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  padding: 0.55rem 1.4rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.fx-btn-primary-borrow:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.fx-btn-primary-borrow:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

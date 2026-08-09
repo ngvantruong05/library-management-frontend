@@ -39,20 +39,9 @@ const MyFavorites = () => {
     }
   }
 
-  const handleBorrowSubmit = async (book, type) => {
-    try {
-      const payload = {
-        bookId: book.id,
-        type: type,
-        numCopies: type === 'OFFLINE' ? 1 : 0,
-      }
-      await api.post('/api/book-loans', payload)
-      alert(`Requested borrow ${book.title} successfully as ${type}!`)
-      setShowDetailModal(false)
-    } catch (error) {
-      console.error('Failed to request borrow:', error)
-      alert(error.response?.data?.message || 'Failed to request book loan')
-    }
+  const handleBorrowSubmit = (book, type, numCopies) => {
+    alert(`Successfully borrowed "${book.title}" (${type}${type === 'OFFLINE' ? ` - ${numCopies || 1} copies` : ''})!`)
+    setShowDetailModal(false)
   }
 
   return (
