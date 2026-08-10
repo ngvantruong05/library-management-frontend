@@ -77,7 +77,7 @@ const Navbar = ({ onSearch }) => {
           <Link to="/dashboard" className={`fx-nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}>Home</Link>
           <Link to="/books" className={`fx-nav-link ${location.pathname === '/books' ? 'active' : ''}`}>All Books</Link>
           <span className="fx-nav-link disabled">Categories</span>
-          <span className="fx-nav-link disabled">My Loans</span>
+          <Link to="/loans" className={`fx-nav-link ${location.pathname === '/loans' ? 'active' : ''}`}>My Loans</Link>
           <Link to="/favorites" className={`fx-nav-link ${location.pathname === '/favorites' ? 'active' : ''}`}>My Favorites</Link>
         </nav>
         
