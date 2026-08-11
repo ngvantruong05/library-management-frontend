@@ -1437,3 +1437,255 @@
   color: var(--text-muted);
   font-weight: 500;
 }
+
+/* ==========================================================================
+   Premium 2-Column Categories Studio Explorer Layout
+   ========================================================================== */
+
+/* 2-Column Layout Wrapper */
+.fx-cat-layout-wrapper {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 2rem;
+  align-items: start;
+  margin-top: 1rem;
+  margin-bottom: 3rem;
+}
+
+/* Left Sidebar */
+.fx-cat-sidebar {
+  position: sticky;
+  top: 80px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: calc(100vh - 120px);
+}
+
+.fx-cat-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fx-cat-sidebar-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.fx-cat-sidebar-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary);
+  border-radius: 9999px;
+}
+
+/* Sidebar Search Box */
+.fx-cat-sidebar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fx-cat-sidebar-search .fx-cat-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.fx-cat-sidebar-input {
+  width: 100%;
+  padding: 0.5rem 2rem 0.5rem 2.25rem;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.fx-cat-sidebar-input:focus {
+  outline: none;
+  background-color: var(--bg-input-focus);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-bg);
+}
+
+.fx-cat-sidebar-clear {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.2rem;
+  font-size: 0.75rem;
+}
+
+/* Sidebar Navigation Items */
+.fx-cat-list-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.fx-cat-list-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.fx-cat-list-nav::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
+.fx-cat-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.fx-cat-list-item:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--color-primary);
+  transform: translateX(2px);
+}
+
+.fx-cat-list-item.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.fx-cat-item-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.fx-cat-item-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fx-cat-item-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  background-color: var(--bg-input);
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.fx-cat-list-item.active .fx-cat-item-count {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+.fx-cat-no-match {
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Right Content Main Area
+   ========================================================================== */
+.fx-cat-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+/* Books Grid inside Explorer */
+.fx-cat-books-grid {
+  margin-top: 0;
+}
+
+/* Empty Box */
+.fx-empty-category-box {
+  padding: 4rem 2rem;
+  background-color: var(--bg-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: 14px;
+}
+
+.fx-btn-reset-filter {
+  margin-top: 1.25rem;
+  padding: 0.55rem 1.25rem;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.fx-btn-reset-filter:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* Clickable Category Tag in Details Modal */
+.fx-clickable-cat-tag {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fx-clickable-cat-tag:hover {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .fx-cat-layout-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .fx-cat-sidebar {
+    position: relative;
+    top: 0;
+    max-height: 240px;
+  }
+}
+
+
+

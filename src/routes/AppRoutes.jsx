@@ -6,6 +6,7 @@ import Register from '../pages/Register'
 import Dashboard from '../pages/Dashboard'
 import AdminDashboard from '../pages/AdminDashboard'
 import BookCatalog from '../pages/BookCatalog'
+import Categories from '../pages/Categories'
 import MyFavorites from '../pages/MyFavorites'
 import MyLoans from '../pages/MyLoans'
 
@@ -105,6 +106,10 @@ const AppRoutes = () => {
       <Route
         path="/books"
         element={<BookCatalog />}
+      />
+      <Route
+        path="/categories"
+        element={<Categories />}
       />
       <Route
         path="/favorites"

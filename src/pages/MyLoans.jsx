@@ -102,7 +102,7 @@ const MyLoans = () => {
   }
 
   // Handle read online book (placeholder for now)
-  const handleReadBook = (loan) => {
+  const handleReadBook = (_loan) => {
     showToast('Tính năng đọc sách online đang được hoàn thiện...', 'info')
   }
 

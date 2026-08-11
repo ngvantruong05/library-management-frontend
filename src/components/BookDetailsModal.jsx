@@ -99,17 +99,13 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
   }
 
   const handleConfirmBorrow = async (payload) => {
-    try {
-      await api.post('/api/book-loans', payload)
-      if (payload.type === 'OFFLINE') {
-        setAvailableCopies(prev => Math.max(0, prev - payload.numCopies))
-      }
-      setShowBorrowModal(false)
-      if (onBorrow) {
-        onBorrow(book, payload.type, payload.numCopies)
-      }
-    } catch (error) {
-      throw error
+    await api.post('/api/book-loans', payload)
+    if (payload.type === 'OFFLINE') {
+      setAvailableCopies(prev => Math.max(0, prev - payload.numCopies))
+    }
+    setShowBorrowModal(false)
+    if (onBorrow) {
+      onBorrow(book, payload.type, payload.numCopies)
     }
   }
 
@@ -190,7 +186,17 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
                   <span className="fx-detail-cat-label">Categories:</span>
                   <div className="fx-detail-cat-tags">
                     {book.categories && book.categories.map((c) => (
-                      <span className="fx-detail-cat-tag" key={c.id}>{c.name}</span>
+                      <span
+                        className="fx-detail-cat-tag fx-clickable-cat-tag"
+                        key={c.id}
+                        onClick={() => {
+                          onClose()
+                          navigate(`/categories?id=${c.id}`)
+                        }}
+                        title={`Explore ${c.name} category`}
+                      >
+                        {c.name}
+                      </span>
                     ))}
                   </div>
                 </div>
