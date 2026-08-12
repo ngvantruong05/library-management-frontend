@@ -78,6 +78,7 @@ const Navbar = ({ onSearch }) => {
           <Link to="/books" className={`fx-nav-link ${location.pathname === '/books' ? 'active' : ''}`}>All Books</Link>
           <Link to="/categories" className={`fx-nav-link ${location.pathname.startsWith('/categories') ? 'active' : ''}`}>Categories</Link>
           <Link to="/loans" className={`fx-nav-link ${location.pathname === '/loans' ? 'active' : ''}`}>My Loans</Link>
+          <Link to="/fines" className={`fx-nav-link ${location.pathname === '/fines' ? 'active' : ''}`}>My Fines</Link>
           <Link to="/favorites" className={`fx-nav-link ${location.pathname === '/favorites' ? 'active' : ''}`}>My Favorites</Link>
         </nav>
         

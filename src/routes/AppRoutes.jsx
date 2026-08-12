@@ -9,6 +9,7 @@ import BookCatalog from '../pages/BookCatalog'
 import Categories from '../pages/Categories'
 import MyFavorites from '../pages/MyFavorites'
 import MyLoans from '../pages/MyLoans'
+import MyFines from '../pages/MyFines'
 
 // Guards against logged-out users accessing private pages
 const ProtectedRoute = ({ children }) => {
@@ -124,6 +125,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <MyLoans />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/fines"
+        element={
+          <ProtectedRoute>
+            <MyFines />
           </ProtectedRoute>
         }
       />
