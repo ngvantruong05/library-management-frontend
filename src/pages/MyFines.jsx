@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import Navbar from '../components/Navbar'
-import BookDetailsModal from '../components/BookDetailsModal'
+import VietQRModal from '../components/VietQRModal'
 import api from '../services/api'
 import '../styles/catalog.css'
 
@@ -12,8 +12,9 @@ const MyFines = () => {
   const [pageSize, setPageSize] = useState(10)
   const [currentPage, setCurrentPage] = useState(0)
 
-  const [selectedBook, setSelectedBook] = useState(null)
-  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedFineForQR, setSelectedFineForQR] = useState(null)
+  const [showQRModal, setShowQRModal] = useState(false)
+
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = 'success') => {
@@ -50,6 +51,8 @@ const MyFines = () => {
       let statusMatch = true
       if (statusFilter === 'Unpaid') {
         statusMatch = fine.status === 'UNPAID'
+      } else if (statusFilter === 'Pending') {
+        statusMatch = fine.status === 'PENDING'
       } else if (statusFilter === 'Paid') {
         statusMatch = fine.status === 'PAID'
       }
@@ -71,17 +74,18 @@ const MyFines = () => {
     return filteredFines.slice(start, start + pageSize)
   }, [filteredFines, currentPage, pageSize])
 
-  // Handle clicking book thumbnail or title to view details
-  const handleOpenBook = async (bookId) => {
-    if (!bookId) return
-    try {
-      const res = await api.get(`/api/books/${bookId}`)
-      setSelectedBook(res.data)
-      setShowDetailModal(true)
-    } catch (err) {
-      console.error('Failed to fetch book details:', err)
-      showToast('Failed to load book details', 'error')
-    }
+  // Handle clicking fine item to open VietQR payment modal / receipt
+  const handleOpenFinePayment = (fine) => {
+    setSelectedFineForQR(fine)
+    setShowQRModal(true)
+  }
+
+  // Handle payment request submitted
+  const handlePaymentSubmitted = (updatedFine) => {
+    setFines((prev) =>
+      prev.map((f) => (f.id === updatedFine.id ? updatedFine : f))
+    )
+    showToast('Đã gửi yêu cầu nộp phạt! Vui lòng chờ thủ thư đối soát phê duyệt.')
   }
 
   const formatCurrency = (amount) => {
@@ -99,6 +103,28 @@ const MyFines = () => {
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const year = d.getFullYear()
     return `${day}/${month}/${year}`
+  }
+
+  const renderStatusChip = (status) => {
+    if (status === 'PAID') {
+      return <span className="fx-loan-chip chip-success">✓ PAID</span>
+    } else if (status === 'PENDING') {
+      return (
+        <span
+          className="fx-loan-chip"
+          style={{
+            backgroundColor: 'rgba(245, 158, 11, 0.15)',
+            color: '#d97706',
+            borderColor: 'rgba(245, 158, 11, 0.35)',
+            fontWeight: 700
+          }}
+        >
+          ⏳ PENDING
+        </span>
+      )
+    } else {
+      return <span className="fx-loan-chip chip-danger">UNPAID</span>
+    }
   }
 
   return (
@@ -138,6 +164,7 @@ const MyFines = () => {
               >
                 <option value="All">All</option>
                 <option value="Unpaid">Unpaid</option>
+                <option value="Pending">Pending</option>
                 <option value="Paid">Paid</option>
               </select>
             </div>
@@ -187,13 +214,14 @@ const MyFines = () => {
         ) : (
           <div className="fx-loans-grid">
             {paginatedFines.map((fine) => (
-              <div key={fine.id} className="fx-loan-card">
+              <div
+                key={fine.id}
+                className="fx-loan-card"
+                onClick={() => handleOpenFinePayment(fine)}
+                style={{ cursor: 'pointer' }}
+              >
                 {/* Thumbnail */}
-                <div
-                  className="fx-loan-thumb-container"
-                  onClick={() => handleOpenBook(fine.bookId)}
-                  style={{ cursor: fine.bookId ? 'pointer' : 'default' }}
-                >
+                <div className="fx-loan-thumb-container">
                   {fine.bookThumbnail ? (
                     <img src={fine.bookThumbnail} alt={fine.bookTitle} className="fx-loan-thumb" />
                   ) : (
@@ -205,12 +233,7 @@ const MyFines = () => {
 
                 {/* Details */}
                 <div className="fx-loan-details">
-                  <h3
-                    className="fx-loan-title"
-                    title={fine.bookTitle}
-                    onClick={() => handleOpenBook(fine.bookId)}
-                    style={{ cursor: fine.bookId ? 'pointer' : 'default' }}
-                  >
+                  <h3 className="fx-loan-title">
                     {fine.bookTitle || 'Book Title Not Available'}
                   </h3>
 
@@ -218,7 +241,7 @@ const MyFines = () => {
                     ⚠️ Overdue: <strong>{fine.overdueDays} {fine.overdueDays === 1 ? 'day' : 'days'}</strong>
                   </p>
 
-                  <p className="fx-loan-copies-count" style={{ color: fine.status === 'UNPAID' ? 'var(--color-danger)' : 'var(--text-muted)' }}>
+                  <p className="fx-loan-copies-count" style={{ color: 'var(--text-primary)' }}>
                     Fine: <strong>{formatCurrency(fine.fineAmount)}</strong>
                   </p>
 
@@ -227,13 +250,11 @@ const MyFines = () => {
                     <span className="fx-loan-chip chip-offline">
                       Loan #{fine.bookLoanId}
                     </span>
-                    <span className={`fx-loan-chip ${fine.status === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
-                      {fine.status}
-                    </span>
+                    {renderStatusChip(fine.status)}
                   </div>
 
                   {fine.createdAt && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
                       Date: {formatDate(fine.createdAt)}
                     </div>
                   )}
@@ -267,15 +288,12 @@ const MyFines = () => {
         )}
       </main>
 
-      {/* Book Detail Modal */}
-      <BookDetailsModal
-        show={showDetailModal}
-        book={selectedBook}
-        onClose={() => setShowDetailModal(false)}
-        onBorrow={() => {
-          fetchFines()
-          showToast('Book borrowed successfully!')
-        }}
+      {/* VietQR Payment & Receipt Modal */}
+      <VietQRModal
+        show={showQRModal}
+        fine={selectedFineForQR}
+        onClose={() => setShowQRModal(false)}
+        onSuccess={handlePaymentSubmitted}
       />
     </div>
   )
