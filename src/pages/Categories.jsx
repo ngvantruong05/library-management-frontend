@@ -58,7 +58,7 @@ const Categories = () => {
       ])
 
       const fetchedCategories = catRes.data || []
-      const fetchedBooks = bookRes.data || []
+      const fetchedBooks = Array.isArray(bookRes.data?.content) ? bookRes.data.content : (bookRes.data || [])
 
       setCategories(fetchedCategories)
       setBooks(fetchedBooks)
