@@ -1831,3 +1831,119 @@
   background-color: var(--color-primary-hover);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
+
+/* Dashboard Horizontal Scroll Wrapper with arrows */
+.fx-scroll-section-wrapper {
+  position: relative;
+  margin-bottom: 2.5rem;
+}
+
+.fx-scroll-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.fx-scroll-view-all-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.fx-scroll-view-all-link:hover {
+  color: var(--color-primary-hover);
+  transform: translateX(3px);
+}
+
+.fx-scroll-container-relative {
+  position: relative;
+  width: 100%;
+}
+
+.fx-horizontal-scroll {
+  /* Hide scrollbar for premium Netflix-like look */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scroll-behavior: smooth;
+}
+
+.fx-horizontal-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Arrow controls */
+.fx-scroll-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.fx-scroll-container-relative:hover .fx-scroll-arrow {
+  opacity: 1;
+  visibility: visible;
+}
+
+.fx-scroll-arrow:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.fx-scroll-arrow:disabled {
+  opacity: 0.25 !important;
+  cursor: not-allowed;
+}
+
+.fx-scroll-arrow-left {
+  left: -16px;
+}
+
+.fx-scroll-arrow-right {
+  right: -16px;
+}
+
+/* Small loading spinner for horizontal loading card */
+.fx-scroll-loading-card {
+  flex: 0 0 180px;
+  height: 270px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.fx-horizontal-scroll .fx-skeleton-card {
+  flex: 0 0 180px;
+  height: 270px;
+  box-sizing: border-box;
+}
+
+
