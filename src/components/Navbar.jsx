@@ -80,6 +80,9 @@ const Navbar = ({ onSearch }) => {
           <Link to="/loans" className={`fx-nav-link ${location.pathname === '/loans' ? 'active' : ''}`}>My Loans</Link>
           <Link to="/fines" className={`fx-nav-link ${location.pathname === '/fines' ? 'active' : ''}`}>My Fines</Link>
           <Link to="/favorites" className={`fx-nav-link ${location.pathname === '/favorites' ? 'active' : ''}`}>My Favorites</Link>
+          {user?.role === 'ADMIN' && (
+            <Link to="/admin/dashboard" className={`fx-nav-link ${location.pathname === '/admin/dashboard' ? 'active' : ''}`} style={{ color: 'var(--color-secondary)', fontWeight: '600' }}>Admin Console</Link>
+          )}
         </nav>
         
         {user ? (
@@ -99,6 +102,12 @@ const Navbar = ({ onSearch }) => {
                   <span className="fx-dropdown-email">{user.email || ''}</span>
                 </div>
                 
+                {user?.role === 'ADMIN' && (
+                  <Link to="/admin/dashboard" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    🔑 Admin Console
+                  </Link>
+                )}
+
                 <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
                   <span>Giao diện:</span>
                   <button className="fx-theme-switch-btn" onClick={toggleTheme}>
