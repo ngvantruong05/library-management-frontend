@@ -816,6 +816,14 @@
   animation: modal-fade-in 0.25s ease;
 }
 
+.modal-card form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
 @keyframes modal-fade-in {
   from {
     opacity: 0;
