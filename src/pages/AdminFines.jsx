@@ -5,42 +5,30 @@ import { useTheme } from '../context/ThemeContext'
 import api from '../services/api'
 import '../styles/dashboard.css'
 
-const AdminLoans = () => {
+const AdminFines = () => {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   // State for raw data from API
-  const [loans, setLoans] = useState([])
-  const [filteredLoans, setFilteredLoans] = useState([])
+  const [fines, setFines] = useState([])
+  const [filteredFines, setFilteredFines] = useState([])
 
   // State for filters, search, and pagination
   const [searchQuery, setSearchQuery] = useState('')
-  const [validFilter, setValidFilter] = useState('All') // All, Active, Returned
-  const [typeFilter, setTypeFilter] = useState('All')   // All, ONLINE, OFFLINE
+  const [statusFilter, setStatusFilter] = useState('All') // All, UNPAID, PENDING, PAID
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [totalElements, setTotalElements] = useState(0)
 
   // Loading and error states
   const [isLoading, setIsLoading] = useState(true)
-  const [isSilentRefreshing, setIsSilentRefreshing] = useState(false)
   const [error, setError] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
   const [searchNavbarQuery, setSearchNavbarQuery] = useState('')
   const [notification, setNotification] = useState(null)
 
-  // Modal States for Creating New Loan
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [loanFormData, setLoanFormData] = useState({
-    userId: '',
-    bookId: '',
-    type: 'OFFLINE',
-    numCopies: 1
-  })
-  const [isSubmitLoading, setIsSubmitLoading] = useState(false)
-
-  // Debounce ref for search field (PauseTransition 0.5s in JavaFX)
+  // Debounce ref for search field
   const searchTimeoutRef = useRef(null)
 
   // Show Toast notification
@@ -60,73 +48,56 @@ const AdminLoans = () => {
     }
   }, [])
 
-  // Silent refresh database and fetch loans on mount
+  // Fetch fines on mount
   useEffect(() => {
-    const initializeData = async () => {
-      setIsSilentRefreshing(true)
-      try {
-        // Silent database refresh to sync overdue statuses
-        await api.post('/api/book-loans/refresh')
-      } catch (err) {
-        console.error('Failed to auto refresh database on mount:', err)
-      } finally {
-        setIsSilentRefreshing(false)
-        fetchLoans()
-      }
-    }
-    initializeData()
+    fetchFines()
   }, [])
 
-  // Perform search, filter, and pagination on client side whenever dependencies change
+  // Apply filters on client side
   useEffect(() => {
-    applyClientSideFilters()
-  }, [loans, searchQuery, validFilter, typeFilter, page, pageSize])
+    applyFilters()
+  }, [fines, searchQuery, statusFilter, page, pageSize])
 
-  const fetchLoans = async () => {
+  const fetchFines = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await api.get('/api/book-loans')
-      setLoans(response.data || [])
+      const response = await api.get('/api/fines')
+      setFines(response.data || [])
     } catch (err) {
-      console.error('Failed to load book loans:', err)
-      setError('Failed to fetch book loans list. Please check server connection.')
+      console.error('Failed to load fines:', err)
+      setError('Failed to fetch fines list. Make sure you are logged in as an Admin.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const applyClientSideFilters = () => {
-    let temp = [...loans]
+  const applyFilters = () => {
+    let temp = [...fines]
     const search = searchQuery.toLowerCase().trim()
+    
+    // 1. Search (Reader name, Email, Book title, ID)
     if (search) {
-      temp = temp.filter(loan => 
-        (loan.userDisplayName && loan.userDisplayName.toLowerCase().includes(search)) ||
-        (loan.userEmail && loan.userEmail.toLowerCase().includes(search)) ||
-        (loan.bookTitle && loan.bookTitle.toLowerCase().includes(search)) ||
-        String(loan.userId).includes(search) ||
-        String(loan.bookId).includes(search)
+      temp = temp.filter(f => 
+        (f.userDisplayName && f.userDisplayName.toLowerCase().includes(search)) ||
+        (f.userEmail && f.userEmail.toLowerCase().includes(search)) ||
+        (f.bookTitle && f.bookTitle.toLowerCase().includes(search)) ||
+        String(f.id).includes(search) ||
+        String(f.bookLoanId).includes(search)
       )
     }
 
-    // Valid Status filter (Active: valid=true, Returned: valid=false)
-    if (validFilter === 'Active') {
-      temp = temp.filter(loan => loan.valid === true)
-    } else if (validFilter === 'Returned') {
-      temp = temp.filter(loan => loan.valid === false)
-    }
-
-    // Loan Type filter (ONLINE / OFFLINE)
-    if (typeFilter !== 'All') {
-      temp = temp.filter(loan => loan.type === typeFilter)
+    // 2. Status Filter (UNPAID / PENDING / PAID)
+    if (statusFilter !== 'All') {
+      temp = temp.filter(f => f.status === statusFilter)
     }
 
     setTotalElements(temp.length)
 
-    // Client side pagination slice
+    // 3. Slice for client-side pagination
     const startIndex = page * pageSize
     const paginated = temp.slice(startIndex, startIndex + pageSize)
-    setFilteredLoans(paginated)
+    setFilteredFines(paginated)
   }
 
   // Handle search field input
@@ -141,13 +112,12 @@ const AdminLoans = () => {
     }, 500)
   }
 
-  // Handle page size dropdown
+  // Handle pagination size change
   const handlePageSizeChange = (e) => {
     setPageSize(Number(e.target.value))
     setPage(0)
   }
 
-  // Navigation handlers
   const handleNextPage = () => {
     if ((page + 1) * pageSize < totalElements) {
       setPage(prev => prev + 1)
@@ -169,7 +139,13 @@ const AdminLoans = () => {
     }
   }
 
-  // Formatter helpers
+  const getInitials = (name) => {
+    if (!name) return 'U'
+    const parts = name.trim().split(' ')
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
     try {
@@ -184,72 +160,26 @@ const AdminLoans = () => {
     }
   }
 
-  const getInitials = () => {
-    if (!user?.displayName) return 'AD'
-    const parts = user.displayName.split(' ')
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(amount || 0)
   }
 
-  // Return Book Action Handler
-  const handleReturnBook = async (loan) => {
-    const confirmReturn = window.confirm(`Are you sure you want to return the book "${loan.bookTitle}" borrowed by ${loan.userDisplayName || loan.userEmail}?`)
-    if (!confirmReturn) return
+  // Confirm Payment Action Handler
+  const handleConfirmPayment = async (fine) => {
+    const confirmPay = window.confirm(`Confirm payment of ${formatCurrency(fine.fineAmount)} for "${fine.bookTitle}" from reader "${fine.userDisplayName || fine.userEmail}"?`)
+    if (!confirmPay) return
 
     try {
-      await api.post(`/api/book-loans/${loan.id}/return`)
-      showToast(`Successfully returned book "${loan.bookTitle}"!`)
-      fetchLoans() // Refresh table list
+      await api.post(`/api/fines/${fine.id}/pay`)
+      showToast(`Successfully confirmed payment for Fine ID ${fine.id}!`)
+      fetchFines() // Reload data
     } catch (err) {
-      console.error('Failed to return book:', err)
-      const errorMsg = err.response?.data?.message || 'Failed to return book. Please try again.'
+      console.error('Failed to pay fine:', err)
+      const errorMsg = err.response?.data?.message || 'Failed to confirm payment. Please try again.'
       alert(`Error: ${errorMsg}`)
-    }
-  }
-
-  // Open Create Loan modal
-  const handleCreateLoanClick = () => {
-    setLoanFormData({
-      userId: '',
-      bookId: '',
-      type: 'OFFLINE',
-      numCopies: 1
-    })
-    setShowCreateModal(true)
-  }
-
-  // Handle Submit of New Loan form
-  const handleCreateLoanSubmit = async (e) => {
-    e.preventDefault()
-    
-    // Validation
-    if (!loanFormData.userId || !loanFormData.bookId) {
-      alert('Please fill in both User ID and Book ID.')
-      return
-    }
-
-    const payload = {
-      userId: Number(loanFormData.userId),
-      bookId: Number(loanFormData.bookId),
-      type: loanFormData.type,
-      numCopies: loanFormData.type === 'OFFLINE' ? Number(loanFormData.numCopies) : 0
-    }
-
-    const confirmAdd = window.confirm(`Are you sure you want to create a new loan record for Book ID ${payload.bookId} to User ID ${payload.userId}?`)
-    if (!confirmAdd) return
-
-    setIsSubmitLoading(true)
-    try {
-      await api.post('/api/book-loans', payload)
-      showToast('Successfully created new book loan!')
-      setShowCreateModal(false)
-      fetchLoans() // Reload datatable
-    } catch (err) {
-      console.error('Failed to create new loan:', err)
-      const errorMsg = err.response?.data?.message || 'Failed to create loan record. Verify if User ID and Book ID exist and are valid.'
-      alert(`Error: ${errorMsg}`)
-    } finally {
-      setIsSubmitLoading(false)
     }
   }
 
@@ -280,7 +210,7 @@ const AdminLoans = () => {
             <input
               type="text"
               className="fx-search-input"
-              placeholder="Search book..."
+              placeholder="Search fine..."
               value={searchNavbarQuery}
               onChange={(e) => setSearchNavbarQuery(e.target.value)}
             />
@@ -307,7 +237,7 @@ const AdminLoans = () => {
                   setShowDropdown(!showDropdown)
                 }}
               >
-                {getInitials()}
+                {getInitials(user.displayName)}
               </div>
 
               {showDropdown && (
@@ -355,7 +285,7 @@ const AdminLoans = () => {
             Books
           </button>
 
-          <button className="db-sidebar-btn active" onClick={() => navigate('/admin/loans')}>
+          <button className="db-sidebar-btn" onClick={() => navigate('/admin/loans')}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
@@ -376,7 +306,7 @@ const AdminLoans = () => {
             Users
           </button>
 
-          <button className="db-sidebar-btn" onClick={() => navigate('/admin/fines')}>
+          <button className="db-sidebar-btn active" onClick={() => navigate('/admin/fines')}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="1" x2="12" y2="23"></line>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
@@ -397,17 +327,11 @@ const AdminLoans = () => {
 
         {/* Content Area */}
         <main className="admin-books-content">
-          <div className="admin-books-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h1 className="admin-books-title">Manage Book Loans</h1>
-            {isSilentRefreshing && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                <div className="db-spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
-                <span>Syncing statuses...</span>
-              </div>
-            )}
+          <div className="admin-books-header">
+            <h1 className="admin-books-title">Manage Fines</h1>
           </div>
 
-          {/* Action Row - Search, Filters, buttons and pagination */}
+          {/* Action Row - Search, Filters, and pagination */}
           <div className="admin-controls-row">
             <div className="admin-control-group">
               <span className="admin-control-label">Search:</span>
@@ -421,34 +345,18 @@ const AdminLoans = () => {
             </div>
 
             <div className="admin-control-group">
-              <span className="admin-control-label">Valid Status:</span>
+              <span className="admin-control-label">Status:</span>
               <select
                 className="admin-select-filter"
-                value={validFilter}
-                onChange={(e) => { setValidFilter(e.target.value); setPage(0); }}
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
               >
-                <option value="All">All</option>
-                <option value="Active">Active Loans</option>
-                <option value="Returned">Returned</option>
+                <option value="All">All Fines</option>
+                <option value="UNPAID">UNPAID</option>
+                <option value="PENDING">PENDING</option>
+                <option value="PAID">PAID</option>
               </select>
             </div>
-
-            <div className="admin-control-group">
-              <span className="admin-control-label">Loan Type:</span>
-              <select
-                className="admin-select-filter"
-                value={typeFilter}
-                onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
-              >
-                <option value="All">All</option>
-                <option value="ONLINE">ONLINE</option>
-                <option value="OFFLINE">OFFLINE</option>
-              </select>
-            </div>
-
-            <button className="admin-btn-primary" onClick={handleCreateLoanClick}>
-              New Loan
-            </button>
 
             {/* Pagination Controls Right Aligned */}
             <div className="admin-pagination-right">
@@ -498,59 +406,54 @@ const AdminLoans = () => {
             {isLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '1rem' }}>
                 <div className="db-spinner"></div>
-                <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Loading book loans datatable...</p>
+                <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Loading fines datatable...</p>
               </div>
-            ) : filteredLoans.length === 0 ? (
+            ) : filteredFines.length === 0 ? (
               <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                No book loan records found.
+                No fine records found.
               </div>
             ) : (
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>User ID</th>
+                    <th>Fine ID</th>
+                    <th>Loan ID</th>
                     <th>Reader</th>
                     <th>Book ID</th>
                     <th>Book Cover</th>
                     <th>Book Title</th>
-                    <th>Borrow Date</th>
-                    <th>Due Date</th>
-                    <th>Return Date</th>
-                    <th>Type</th>
-                    <th>Copies</th>
+                    <th>Overdue Days</th>
+                    <th>Fine Amount</th>
                     <th>Status</th>
-                    <th>Valid</th>
+                    <th>Created At</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredLoans.map((loan) => {
-                    const initials = loan.userDisplayName 
-                      ? (loan.userDisplayName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()) 
-                      : 'U'
+                  {filteredFines.map((fine) => {
+                    const initials = getInitials(fine.userDisplayName)
                     
                     return (
-                      <tr key={loan.id}>
-                        <td style={{ fontWeight: '600' }}>{loan.id}</td>
-                        <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{loan.userId}</td>
+                      <tr key={fine.id}>
+                        <td style={{ fontWeight: '600' }}>{fine.id}</td>
+                        <td style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{fine.bookLoanId}</td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <div className="fx-user-avatar" style={{ width: '32px', height: '32px', fontSize: '0.8rem', background: '#3b82f6', color: '#fff', border: 'none' }}>
                               {initials}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                              <span style={{ fontWeight: '500' }}>{loan.userDisplayName || 'User'}</span>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{loan.userEmail}</span>
+                              <span style={{ fontWeight: '500' }}>{fine.userDisplayName || 'User'}</span>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{fine.userEmail}</span>
                             </div>
                           </div>
                         </td>
-                        <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{loan.bookId}</td>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{fine.bookId}</td>
                         <td>
-                          {loan.bookThumbnail ? (
+                          {fine.bookThumbnail ? (
                             <img
-                              src={loan.bookThumbnail}
-                              alt={loan.bookTitle}
+                              src={fine.bookThumbnail}
+                              alt={fine.bookTitle}
                               className="admin-table-thumb"
                               style={{ width: '40px', height: '52px' }}
                               onError={(e) => { e.target.src = 'https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api' }}
@@ -561,35 +464,24 @@ const AdminLoans = () => {
                             </div>
                           )}
                         </td>
-                        <td style={{ fontWeight: '500', minWidth: '150px' }}>{loan.bookTitle}</td>
-                        <td>{formatDate(loan.borrowDate)}</td>
-                        <td>{formatDate(loan.dueDate)}</td>
-                        <td>{formatDate(loan.returnDate)}</td>
+                        <td style={{ fontWeight: '500', minWidth: '150px' }}>{fine.bookTitle}</td>
+                        <td>{fine.overdueDays} {fine.overdueDays === 1 ? 'day' : 'days'}</td>
+                        <td style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{formatCurrency(fine.fineAmount)}</td>
                         <td>
-                          <span className="db-chip db-chip-info" style={{ backgroundColor: loan.type === 'ONLINE' ? 'rgba(16,185,129,0.12)' : 'rgba(59,130,246,0.12)', color: loan.type === 'ONLINE' ? 'var(--color-success)' : 'var(--color-primary)' }}>
-                            {loan.type}
+                          <span className={`admin-badge-status-${(fine.status || 'UNPAID').toLowerCase()}`}>
+                            {fine.status}
                           </span>
                         </td>
-                        <td>{loan.numCopies}</td>
+                        <td>{formatDate(fine.createdAt)}</td>
                         <td>
-                          <span className={`admin-badge-status-${(loan.status || 'BORROWED').toLowerCase()}`}>
-                            {loan.status}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`admin-badge-${loan.valid ? 'active' : 'inactive'}`}>
-                            {loan.valid ? 'True' : 'False'}
-                          </span>
-                        </td>
-                        <td>
-                          {loan.valid && (
+                          {fine.status !== 'PAID' && (
                             <div className="admin-table-actions">
                               <button
                                 className="admin-btn-action admin-btn-action-edit"
-                                style={{ borderColor: 'var(--color-success)', color: 'var(--color-success)', background: 'transparent' }}
-                                onClick={() => handleReturnBook(loan)}
+                                style={{ borderColor: 'var(--color-success)', color: 'var(--color-success)', background: 'transparent', minWidth: '95px' }}
+                                onClick={() => handleConfirmPayment(fine)}
                               >
-                                Return
+                                Confirm Pay
                               </button>
                             </div>
                           )}
@@ -603,83 +495,8 @@ const AdminLoans = () => {
           </div>
         </main>
       </div>
-
-      {/* Modal Creating New Loan */}
-      {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal-card" style={{ maxWidth: '450px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Create New Book Loan</h2>
-              <button className="modal-close-btn" onClick={() => setShowCreateModal(false)}>✕</button>
-            </div>
-            
-            <form onSubmit={handleCreateLoanSubmit}>
-              <div className="modal-body" style={{ gap: '1.25rem' }}>
-                <div className="form-group">
-                  <label className="form-label">User ID (Reader ID) *</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    placeholder="Enter numerical User ID"
-                    required
-                    value={loanFormData.userId}
-                    onChange={(e) => setLoanFormData({ ...loanFormData, userId: e.target.value })}
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">Book ID *</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    placeholder="Enter Book ID"
-                    required
-                    value={loanFormData.bookId}
-                    onChange={(e) => setLoanFormData({ ...loanFormData, bookId: e.target.value })}
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">Loan Type *</label>
-                  <select
-                    className="form-select"
-                    value={loanFormData.type}
-                    onChange={(e) => setLoanFormData({ ...loanFormData, type: e.target.value })}
-                  >
-                    <option value="OFFLINE">OFFLINE (Physical shelf borrow)</option>
-                    <option value="ONLINE">ONLINE (E-book read)</option>
-                  </select>
-                </div>
-                
-                {loanFormData.type === 'OFFLINE' && (
-                  <div className="form-group">
-                    <label className="form-label">Number of Copies *</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      min="1"
-                      required
-                      value={loanFormData.numCopies}
-                      onChange={(e) => setLoanFormData({ ...loanFormData, numCopies: Math.max(1, Number(e.target.value)) })}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="catalog-btn-primary" disabled={isSubmitLoading}>
-                  Create Loan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
 
-export default AdminLoans
+export default AdminFines

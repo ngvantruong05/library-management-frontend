@@ -8,6 +8,7 @@ import AdminDashboard from '../pages/AdminDashboard'
 import AdminBooks from '../pages/AdminBooks'
 import AdminLoans from '../pages/AdminLoans'
 import AdminUsers from '../pages/AdminUsers'
+import AdminFines from '../pages/AdminFines'
 import BookCatalog from '../pages/BookCatalog'
 import Categories from '../pages/Categories'
 import MyFavorites from '../pages/MyFavorites'
@@ -128,6 +129,14 @@ const AppRoutes = () => {
         element={
           <AdminRoute>
             <AdminUsers />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/fines"
+        element={
+          <AdminRoute>
+            <AdminFines />
           </AdminRoute>
         }
       />
