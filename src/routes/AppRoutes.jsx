@@ -9,6 +9,7 @@ import AdminBooks from '../pages/AdminBooks'
 import AdminLoans from '../pages/AdminLoans'
 import AdminUsers from '../pages/AdminUsers'
 import AdminFines from '../pages/AdminFines'
+import AdminCategories from '../pages/AdminCategories'
 import BookCatalog from '../pages/BookCatalog'
 import Categories from '../pages/Categories'
 import MyFavorites from '../pages/MyFavorites'
@@ -137,6 +138,14 @@ const AppRoutes = () => {
         element={
           <AdminRoute>
             <AdminFines />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/categories"
+        element={
+          <AdminRoute>
+            <AdminCategories />
           </AdminRoute>
         }
       />
