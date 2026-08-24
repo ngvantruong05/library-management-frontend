@@ -273,13 +273,15 @@ const MyLoans = () => {
                   {/* Action Buttons */}
                   <div className="fx-loan-actions">
                     {loan.valid ? (
-                      <button
-                        className="fx-btn-return"
-                        onClick={() => handleReturnBook(loan)}
-                        disabled={returningId === loan.id}
-                      >
-                        {returningId === loan.id ? 'Returning...' : 'Return'}
-                      </button>
+                      loan.type === 'ONLINE' && (
+                        <button
+                          className="fx-btn-return"
+                          onClick={() => handleReturnBook(loan)}
+                          disabled={returningId === loan.id}
+                        >
+                          {returningId === loan.id ? 'Returning...' : 'Return'}
+                        </button>
+                      )
                     ) : (
                       <button
                         className="fx-btn-reborrow"
