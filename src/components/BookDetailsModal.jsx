@@ -5,12 +5,17 @@ import api from '../services/api'
 import BorrowBookModal from './BorrowBookModal'
 
 const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) => {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
   const [isFavorite, setIsFavorite] = useState(false)
   const [availableCopies, setAvailableCopies] = useState(book?.availableCopies ?? 5)
   const [showBorrowModal, setShowBorrowModal] = useState(false)
   const [borrowModalType, setBorrowModalType] = useState('OFFLINE')
+  
+  const [comments, setComments] = useState([])
+  const [newComment, setNewComment] = useState('')
+  const [editingCommentId, setEditingCommentId] = useState(null)
+  const [editingContent, setEditingContent] = useState('')
 
   useEffect(() => {
     const fetchExtraDetails = async () => {
@@ -38,9 +43,20 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
           setAvailableCopies(book.availableCopies)
         }
       }
+
+      // Fetch comments
+      try {
+        const commentRes = await api.get(`/api/comments/book/${book.id}`)
+        setComments(commentRes.data || [])
+      } catch (error) {
+        console.error('Failed to fetch comments:', error)
+      }
     }
 
     if (show && book?.id) {
+      setNewComment('')
+      setEditingCommentId(null)
+      setEditingContent('')
       fetchExtraDetails()
     }
   }, [show, book, isAuthenticated])
@@ -48,6 +64,54 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
   const requireLogin = () => {
     alert("Please login first to perform this action!")
     navigate('/login')
+  }
+
+  const handleAddComment = async (e) => {
+    e.preventDefault()
+    if (!newComment.trim()) return
+    try {
+      const response = await api.post('/api/comments', {
+        bookId: book.id,
+        content: newComment
+      })
+      setComments(prev => [...prev, response.data])
+      setNewComment('')
+    } catch (error) {
+      console.error('Failed to add comment:', error)
+      alert(error.response?.data?.message || 'Failed to add comment')
+    }
+  }
+
+  const startEditComment = (comment) => {
+    setEditingCommentId(comment.id)
+    setEditingContent(comment.content)
+  }
+
+  const handleSaveEdit = async (id) => {
+    if (!editingContent.trim()) return
+    try {
+      const response = await api.put(`/api/comments/${id}`, {
+        bookId: book.id,
+        content: editingContent
+      })
+      setComments(prev => prev.map(c => c.id === id ? response.data : c))
+      setEditingCommentId(null)
+      setEditingContent('')
+    } catch (error) {
+      console.error('Failed to update comment:', error)
+      alert(error.response?.data?.message || 'Failed to update comment')
+    }
+  }
+
+  const handleDeleteComment = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) return
+    try {
+      await api.delete(`/api/comments/${id}`)
+      setComments(prev => prev.filter(c => c.id !== id))
+    } catch (error) {
+      console.error('Failed to delete comment:', error)
+      alert(error.response?.data?.message || 'Failed to delete comment')
+    }
   }
 
   const handleToggleFavorite = async () => {
@@ -253,9 +317,110 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
 
             {/* Comments section */}
             <div className="fx-comments-section">
-              <h3 className="fx-comments-title">Comments</h3>
-              <div className="fx-comments-list-empty">
-                No comments yet. Be the first to share your thoughts!
+              <h3 className="fx-comments-title">Comments ({comments.length})</h3>
+              
+              {/* Form to add a new comment */}
+              {isAuthenticated ? (
+                <form onSubmit={handleAddComment} className="fx-comment-form">
+                  <textarea
+                    className="fx-comment-textarea"
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    rows="3"
+                    required
+                  />
+                  <div className="fx-comment-form-actions">
+                    <button type="submit" className="fx-comment-submit-btn">
+                      Post Comment
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="fx-comment-login-prompt">
+                  Please <span className="fx-link" onClick={requireLogin}>login</span> to write a comment.
+                </div>
+              )}
+
+              {/* List of comments */}
+              <div className="fx-comments-list">
+                {comments.length === 0 ? (
+                  <div className="fx-comments-list-empty">
+                    No comments yet. Be the first to share your thoughts!
+                  </div>
+                ) : (
+                  comments.map(c => {
+                    const isOwner = user && user.email === c.userEmail;
+                    const isAdmin = user && user.role === 'ADMIN';
+                    const canDelete = isOwner || isAdmin;
+                    const canEdit = isOwner;
+
+                    return (
+                      <div key={c.id} className="fx-comment-item">
+                        {/* Avatar */}
+                        <div className="fx-comment-item-avatar">
+                          {c.userPhotoUrl ? (
+                            <img src={c.userPhotoUrl} alt={c.userDisplayName} className="fx-comment-avatar-img" />
+                          ) : (
+                            <div className="fx-comment-avatar-placeholder">
+                              {c.userDisplayName ? c.userDisplayName.charAt(0).toUpperCase() : '?'}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Content & Header */}
+                        <div className="fx-comment-body">
+                          <div className="fx-comment-header">
+                            <span className="fx-comment-author">{c.userDisplayName}</span>
+                            <span className="fx-comment-time">
+                              {new Date(c.createdAt).toLocaleString(undefined, {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+
+                          {editingCommentId === c.id ? (
+                            <div className="fx-comment-edit-box">
+                              <textarea
+                                className="fx-comment-textarea editing"
+                                value={editingContent}
+                                onChange={(e) => setEditingContent(e.target.value)}
+                                rows="2"
+                                required
+                              />
+                              <div className="fx-comment-edit-actions">
+                                <button className="fx-comment-save-btn" onClick={() => handleSaveEdit(c.id)}>Save</button>
+                                <button className="fx-comment-cancel-btn" onClick={() => setEditingCommentId(null)}>Cancel</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="fx-comment-content">{c.content}</div>
+                          )}
+                        </div>
+
+                        {/* Actions (Edit / Delete) */}
+                        {!editingCommentId && (canEdit || canDelete) && (
+                          <div className="fx-comment-actions">
+                            {canEdit && (
+                              <button className="fx-comment-action-btn edit" onClick={() => startEditComment(c)}>
+                                Edit
+                              </button>
+                            )}
+                            {canDelete && (
+                              <button className="fx-comment-action-btn delete" onClick={() => handleDeleteComment(c.id)}>
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
