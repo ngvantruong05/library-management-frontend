@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import api from '../services/api'
 import AddEditBookModal from '../components/AddEditBookModal'
+import AdminBooksControls from '../components/AdminBooksControls'
+import AdminBooksTable from '../components/AdminBooksTable'
+import ManageCopiesModal from '../components/ManageCopiesModal'
 import '../styles/dashboard.css'
 
 const AdminBooks = () => {
@@ -82,37 +85,16 @@ const AdminBooks = () => {
     }
   }, [])
 
-  // Fetch dropdown list data once on mount
+  // Cleanup timeout on unmount to prevent memory leaks
   useEffect(() => {
-    fetchDropdownsData()
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
   }, [])
 
-  // Fetch books on page/pageSize/searchQuery changes
-  useEffect(() => {
-    fetchBooks()
-  }, [page, pageSize, searchQuery])
-
-  // Apply active status local filter (matches JavaFX onFilter)
-  useEffect(() => {
-    if (activeFilter === 'All') {
-      setFilteredBooks(books)
-    } else {
-      const isTrue = activeFilter === 'True'
-      const filtered = books.filter(b => b.activated === isTrue)
-      setFilteredBooks(filtered)
-    }
-  }, [books, activeFilter])
-
-  // Fetch copies stock for each book in the list
-  useEffect(() => {
-    if (books.length > 0) {
-      books.forEach(book => {
-        fetchBookCopiesStock(book.id)
-      })
-    }
-  }, [books])
-
-  const fetchDropdownsData = async () => {
+  const fetchDropdownsData = useCallback(async () => {
     try {
       const [authRes, catRes, pubRes] = await Promise.all([
         api.get('/api/authors'),
@@ -125,30 +107,14 @@ const AdminBooks = () => {
     } catch (err) {
       console.error('Failed to load dropdown data:', err)
     }
-  }
+  }, [])
 
-  const fetchBookCopiesStock = async (bookId) => {
-    try {
-      const res = await api.get(`/api/book-copies/book/${bookId}`)
-      if (res.data) {
-        setCopiesStock(prev => ({
-          ...prev,
-          [bookId]: {
-            available: res.data.availableCopies,
-            total: res.data.totalCopies
-          }
-        }))
-      }
-    } catch {
-      // Set to 0 if record not found
-      setCopiesStock(prev => ({
-        ...prev,
-        [bookId]: { available: 0, total: 0 }
-      }))
-    }
-  }
+  // Fetch dropdown list data once on mount
+  useEffect(() => {
+    fetchDropdownsData()
+  }, [fetchDropdownsData])
 
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
@@ -181,7 +147,53 @@ const AdminBooks = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [page, pageSize, searchQuery])
+
+  // Fetch books on page/pageSize/searchQuery changes
+  useEffect(() => {
+    fetchBooks()
+  }, [fetchBooks])
+
+  // Apply active status local filter (matches JavaFX onFilter)
+  useEffect(() => {
+    if (activeFilter === 'All') {
+      setFilteredBooks(books)
+    } else {
+      const isTrue = activeFilter === 'True'
+      const filtered = books.filter(b => b.activated === isTrue)
+      setFilteredBooks(filtered)
+    }
+  }, [books, activeFilter])
+
+  const fetchBookCopiesStock = useCallback(async (bookId) => {
+    try {
+      const res = await api.get(`/api/book-copies/book/${bookId}`)
+      if (res.data) {
+        setCopiesStock(prev => ({
+          ...prev,
+          [bookId]: {
+            available: res.data.availableCopies,
+            total: res.data.totalCopies
+          }
+        }))
+      }
+    } catch {
+      // Set to 0 if record not found
+      setCopiesStock(prev => ({
+        ...prev,
+        [bookId]: { available: 0, total: 0 }
+      }))
+    }
+  }, [])
+
+  // Fetch copies stock for each book in the list
+  useEffect(() => {
+    if (books.length > 0) {
+      books.forEach(book => {
+        fetchBookCopiesStock(book.id)
+      })
+    }
+  }, [books, fetchBookCopiesStock])
 
   const handleSearchChange = (e) => {
     const val = e.target.value
@@ -228,7 +240,7 @@ const AdminBooks = () => {
       const month = String(d.getMonth() + 1).padStart(2, '0')
       const year = d.getFullYear()
       return `${day}/${month}/${year}`
-    } catch (e) {
+    } catch {
       return dateStr
     }
   }
@@ -308,8 +320,8 @@ const AdminBooks = () => {
         pageCount: Number(formData.pageCount),
         price: Number(formData.price),
         discountPrice: Number(formData.discountPrice),
-        authorIds: formData.authorIds.map(Number),
-        categoryIds: formData.categoryIds.map(Number)
+        authorIds: (formData.authorIds || []).map(Number),
+        categoryIds: (formData.categoryIds || []).map(Number)
       }
 
       if (selectedBook) {
@@ -366,7 +378,7 @@ const AdminBooks = () => {
         setTotalCopiesInput(res.data.totalCopies)
         setAvailableCopiesText(res.data.availableCopies)
       }
-    } catch (err) {
+    } catch {
       // If not found, default to 0
       setTotalCopiesInput(0)
       setAvailableCopiesText(0)
@@ -541,211 +553,42 @@ const AdminBooks = () => {
           </div>
 
           {/* Action Row - Search, Filters, New Button, Pagination Controls */}
-          <div className="admin-controls-row">
-            <div className="admin-control-group">
-              <span className="admin-control-label">Search:</span>
-              <input
-                type="text"
-                className="admin-search-input"
-                placeholder="Search by title, isbn, author..."
-                defaultValue={searchQuery}
-                onChange={handleSearchChange}
-              />
-            </div>
-
-            <div className="admin-control-group">
-              <span className="admin-control-label">Active:</span>
-              <select
-                className="admin-select-filter"
-                value={activeFilter}
-                onChange={(e) => setActiveFilter(e.target.value)}
-              >
-                <option value="All">All</option>
-                <option value="True">True</option>
-                <option value="False">False</option>
-              </select>
-            </div>
-
-            <button className="admin-btn-primary" onClick={handleCreateBook}>
-              New Book
-            </button>
-
-            {/* Pagination Controls Right Aligned */}
-            <div className="admin-pagination-right">
-              <span className="admin-pagination-text">
-                Showing {totalElements > 0 ? page * pageSize + 1 : 0} to{' '}
-                {Math.min((page + 1) * pageSize, totalElements)} of {totalElements}
-              </span>
-
-              <select
-                className="admin-select-filter"
-                style={{ width: '80px' }}
-                value={pageSize}
-                onChange={handlePageSizeChange}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-
-              <button
-                className="admin-btn-default"
-                onClick={handlePrevPage}
-                disabled={page === 0 || isLoading}
-              >
-                Previous
-              </button>
-              <button
-                className="admin-btn-default"
-                onClick={handleNextPage}
-                disabled={(page + 1) * pageSize >= totalElements || isLoading}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          <AdminBooksControls
+            searchQuery={searchQuery}
+            handleSearchChange={handleSearchChange}
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
+            handleCreateBook={handleCreateBook}
+            totalElements={totalElements}
+            page={page}
+            pageSize={pageSize}
+            handlePageSizeChange={handlePageSizeChange}
+            handlePrevPage={handlePrevPage}
+            handleNextPage={handleNextPage}
+            isLoading={isLoading}
+          />
 
           {/* Error Banner */}
           {error && (
-            <div style={{ color: 'var(--color-danger)', padding: '1rem', backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div style={{ color: 'var(--color-danger)', padding: '1rem', backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '1rem' }}>
               {error}
             </div>
           )}
 
           {/* Main Datatable */}
-          <div className="admin-table-container">
-            {isLoading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '1rem' }}>
-                <div className="db-spinner"></div>
-                <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Loading books datatable...</p>
-              </div>
-            ) : filteredBooks.length === 0 ? (
-              <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                No books found matching criteria.
-              </div>
-            ) : (
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>ISBN</th>
-                    <th>Thumbnail</th>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Publisher</th>
-                    <th>Authors</th>
-                    <th>Categories</th>
-                    <th>Price</th>
-                    <th>Discount</th>
-                    <th>Currency</th>
-                    <th>Pages</th>
-                    <th>Language</th>
-                    <th>Active</th>
-                    <th>Copies</th>
-                    <th>Published At</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredBooks.map((book) => {
-                    const stock = copiesStock[book.id] || { available: 0, total: 0 }
-                    return (
-                      <tr key={book.id}>
-                        <td style={{ fontWeight: '600' }}>{book.id}</td>
-                        <td>{book.isbn}</td>
-                        <td>
-                          {book.thumbnail ? (
-                            <img
-                              src={book.thumbnail}
-                              alt={book.title}
-                              className="admin-table-thumb"
-                              onError={(e) => { e.target.src = 'https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api' }}
-                            />
-                          ) : (
-                            <div className="admin-table-placeholder-thumb">
-                              <span style={{ fontSize: '0.6rem' }}>No Img</span>
-                            </div>
-                          )}
-                        </td>
-                        <td style={{ fontWeight: '500', minWidth: '150px' }}>{book.title}</td>
-                        <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={book.description}>
-                          {book.description || '-'}
-                        </td>
-                        <td>{book.publisher?.name || '-'}</td>
-                        <td>
-                          <div className="admin-chip-container">
-                            {book.authors && book.authors.length > 0 ? (
-                              book.authors.map((a) => (
-                                <span key={a.id} className="admin-table-chip" title={a.name}>
-                                  {a.name}
-                                </span>
-                              ))
-                            ) : (
-                              <span>-</span>
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="admin-chip-container">
-                            {book.categories && book.categories.length > 0 ? (
-                              book.categories.map((c) => (
-                                <span key={c.id} className="admin-table-chip" style={{ backgroundColor: 'rgba(16,185,129,0.12)', color: 'var(--color-success)' }} title={c.name}>
-                                  {c.name}
-                                </span>
-                              ))
-                            ) : (
-                              <span>-</span>
-                            )}
-                          </div>
-                        </td>
-                        <td>{book.price !== undefined ? book.price.toFixed(2) : '0.00'}</td>
-                        <td>{book.discountPrice !== undefined ? book.discountPrice.toFixed(2) : '0.00'}</td>
-                        <td>{book.currencyCode || 'VND'}</td>
-                        <td>{book.pageCount || '-'}</td>
-                        <td>{book.language || 'English'}</td>
-                        <td>
-                          <span className={`admin-badge-${book.activated ? 'active' : 'inactive'}`}>
-                            {book.activated ? 'True' : 'False'}
-                          </span>
-                        </td>
-                        <td style={{ fontWeight: '600', color: 'var(--color-primary)' }}>
-                          {stock.available} / {stock.total}
-                        </td>
-                        <td>{formatDate(book.publishedDate)}</td>
-                        <td>
-                          <div className="admin-table-actions">
-                            <button
-                              className="admin-btn-action admin-btn-action-edit"
-                              onClick={() => handleEditBook(book)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              className="admin-btn-action admin-btn-action-copies"
-                              onClick={() => handleManageCopies(book)}
-                            >
-                              Copies
-                            </button>
-                            <button
-                              className="admin-btn-action admin-btn-action-delete"
-                              onClick={() => handleDeleteBook(book)}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
+          <AdminBooksTable
+            isLoading={isLoading}
+            filteredBooks={filteredBooks}
+            copiesStock={copiesStock}
+            formatDate={formatDate}
+            onEdit={handleEditBook}
+            onManageCopies={handleManageCopies}
+            onDelete={handleDeleteBook}
+          />
         </main>
       </div>
 
-      {/* Commit 3: Add / Edit Book Modal component */}
+      {/* Add / Edit Book Modal component */}
       <AddEditBookModal
         show={showBookModal}
         selectedBook={selectedBook}
@@ -759,65 +602,17 @@ const AdminBooks = () => {
         handleMultipleSelectChange={handleMultipleSelectChange}
       />
 
-      {/* Commit 4: Copies Stock Update Modal */}
-      {showCopiesModal && copiesBook && (
-        <div className="modal-overlay" onClick={() => setShowCopiesModal(false)}>
-          <div className="modal-card copies-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Copies Stock Update</h2>
-              <button className="modal-close-btn" onClick={() => setShowCopiesModal(false)}>✕</button>
-            </div>
-            
-            <form onSubmit={handleCopiesFormSubmit}>
-              <div className="modal-body" style={{ gap: '1.25rem' }}>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                  Updating copies for: <strong style={{ color: 'var(--text-primary)' }}>{copiesBook.title}</strong>
-                </p>
-                
-                {isCopiesLoading ? (
-                  <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem' }}>
-                    <div className="db-spinner" style={{ width: '30px', height: '30px' }}></div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="form-group">
-                      <label className="form-label">Available Copies (Current)</label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        value={availableCopiesText}
-                        disabled
-                        style={{ opacity: 0.7, cursor: 'not-allowed' }}
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label className="form-label">Total Copies *</label>
-                      <input
-                        type="number"
-                        className="form-input"
-                        min="0"
-                        required
-                        value={totalCopiesInput}
-                        onChange={(e) => setTotalCopiesInput(Math.max(0, Number(e.target.value)))}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setShowCopiesModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="catalog-btn-primary" disabled={isCopiesLoading}>
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Copies Stock Update Modal */}
+      <ManageCopiesModal
+        show={showCopiesModal}
+        copiesBook={copiesBook}
+        isCopiesLoading={isCopiesLoading}
+        availableCopiesText={availableCopiesText}
+        totalCopiesInput={totalCopiesInput}
+        setTotalCopiesInput={setTotalCopiesInput}
+        onClose={() => setShowCopiesModal(false)}
+        onSubmit={handleCopiesFormSubmit}
+      />
     </div>
   )
 }
