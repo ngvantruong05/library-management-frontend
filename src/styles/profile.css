@@ -1,0 +1,425 @@
+/* Profile Page Styles - Mimicking JavaFX Profile UI */
+
+/* Modal overlay styling */
+.profile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.profile-modal-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow-hover);
+  position: relative;
+  transition: all var(--transition-speed) ease;
+  animation: scaleUp 0.2s ease-out;
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); }
+  to { transform: scale(1); }
+}
+
+.profile-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.profile-modal-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.profile-modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s ease;
+  padding: 0 0.5rem;
+}
+
+.profile-modal-close:hover {
+  color: var(--color-danger);
+}
+
+
+/* JavaFX TabPane emulation */
+.fx-tab-pane {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-tab-header {
+  display: flex;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+.fx-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+}
+
+.fx-tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.fx-tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.fx-tab-content {
+  width: 100%;
+}
+
+/* HBox align TOP_CENTER spacing 10 */
+.profile-personal-info {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  padding: 1rem 0;
+}
+
+@media (max-width: 768px) {
+  .profile-personal-info {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .v-separator {
+    display: none;
+  }
+}
+
+/* Left panel: Avatar and info grid */
+.profile-left-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  min-width: 250px;
+}
+
+/* Avatar container with circular crop & hover label */
+.avatar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-stack-pane {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  border: 3px solid var(--border-color);
+  transition: border-color 0.2s ease;
+}
+
+.image-stack-pane:hover {
+  border-color: var(--color-primary);
+}
+
+.profile-image-upload {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.change-avatar-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 0.35rem 0;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.image-stack-pane:hover .change-avatar-label {
+  opacity: 1;
+}
+
+/* Info grid */
+.profile-grid-info {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 1rem;
+  row-gap: 0.75rem;
+  width: 100%;
+  background-color: var(--bg-tertiary);
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.profile-grid-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.profile-grid-value {
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+/* Separator orientation="VERTICAL" */
+.v-separator {
+  width: 1px;
+  background-color: var(--border-color);
+  align-self: stretch;
+}
+
+/* Right panel: inputs */
+.profile-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+  width: 100%;
+  max-width: 400px;
+}
+
+.profile-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.profile-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-input);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: var(--font-primary);
+  transition: all var(--transition-speed) ease;
+}
+
+.profile-input:focus {
+  outline: none;
+  background-color: var(--bg-input-focus);
+  border-color: var(--border-focused);
+  box-shadow: 0 0 0 2px var(--color-primary-bg);
+}
+
+.profile-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Buttons */
+.profile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.profile-btn-primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.profile-btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.profile-btn-primary:disabled {
+  background-color: var(--bg-input);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  border: 1px solid var(--border-color);
+}
+
+/* Security setting container */
+.profile-security-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem 0;
+}
+
+.profile-security-box {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* JavaFX Loading overlay emulation */
+.fx-loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  border-radius: 16px;
+  backdrop-filter: blur(2px);
+}
+
+.fx-loading-inner {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-hover);
+  max-width: 250px;
+  width: 90%;
+  text-align: center;
+}
+
+.fx-loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: fx-spin 1s linear infinite;
+}
+
+@keyframes fx-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.fx-loading-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.fx-btn-text {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.fx-btn-text:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+/* Toast alert banner */
+.profile-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 500;
+  box-shadow: var(--shadow-hover);
+  z-index: 1000;
+  animation: slide-in 0.3s ease-out;
+}
+
+.profile-toast-success {
+  background-color: var(--color-success);
+}
+
+.profile-toast-error {
+  background-color: var(--color-danger);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateY(100%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}

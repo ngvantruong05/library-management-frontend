@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import ProfileModal from './ProfileModal'
 
 const Navbar = ({ onSearch }) => {
   const { user, logout } = useAuth()
@@ -10,6 +11,7 @@ const Navbar = ({ onSearch }) => {
   const location = useLocation()
   const [localQuery, setLocalQuery] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
 
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -91,8 +93,15 @@ const Navbar = ({ onSearch }) => {
               className="fx-user-avatar" 
               title={user.displayName || 'User Profile'}
               onClick={toggleDropdown}
+              style={user.photoUrl ? {
+                backgroundImage: `url(${user.photoUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                color: 'transparent'
+              } : {}}
             >
-              {getInitials()}
+              {!user.photoUrl && getInitials()}
             </div>
             
             {showDropdown && (
@@ -107,6 +116,17 @@ const Navbar = ({ onSearch }) => {
                     🔑 Admin Console
                   </Link>
                 )}
+
+                <div 
+                  className="fx-dropdown-item" 
+                  onClick={() => {
+                    setShowProfileModal(true)
+                    setShowDropdown(false)
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  👤 Hồ sơ cá nhân
+                </div>
 
                 <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
                   <span>Giao diện:</span>
@@ -139,6 +159,7 @@ const Navbar = ({ onSearch }) => {
           </Link>
         )}
       </div>
+      <ProfileModal show={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </header>
   )
 }
