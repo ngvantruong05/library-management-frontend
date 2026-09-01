@@ -1,10 +1,11 @@
 import React from 'react'
+import StarRating from './StarRating'
 
 const BookCard = ({ book, onClick, showRating = false }) => {
-  // Mock rating generation if not present
-  const rating = book.rating !== undefined ? book.rating : (book.id % 2 === 0 ? 4.5 : 3.5)
-  const fullStars = Math.floor(rating)
-  const hasHalfStar = rating % 1 !== 0
+  const rating = book.averageRating !== undefined && book.averageRating !== null 
+    ? book.averageRating 
+    : (book.rating !== undefined ? book.rating : 0)
+  const ratingCount = book.ratingCount !== undefined ? book.ratingCount : 0
 
   return (
     <div className="fx-book-card" onClick={() => onClick && onClick(book)}>
@@ -36,17 +37,10 @@ const BookCard = ({ book, onClick, showRating = false }) => {
         
         {showRating ? (
           <div className="fx-rating-container">
-            <div className="fx-stars">
-              {[...Array(5)].map((_, i) => (
-                <span 
-                  key={i} 
-                  className={`fx-star ${i < fullStars ? 'full' : (i === fullStars && hasHalfStar ? 'half' : 'empty')}`}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            <span className="fx-rating-text">({rating})</span>
+            <StarRating value={rating} readOnly={true} size="sm" />
+            <span className="fx-rating-text">
+              {rating > 0 ? `${rating.toFixed(1)} (${ratingCount})` : 'No reviews'}
+            </span>
           </div>
         ) : (
           <p className="fx-book-author">

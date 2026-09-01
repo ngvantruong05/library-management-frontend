@@ -259,10 +259,10 @@ const Dashboard = () => {
         {/* Welcome Header */}
         <h1 className="fx-welcome-title">Welcome, {user?.displayName || 'Guest'}</h1>
 
-        {/* Top Rated Section (using pageCount desc for variation) */}
+        {/* Top Rated Section (Sorted by real average rating desc) */}
         <HorizontalBookSection
           title="Top Rated"
-          sortBy="pageCount"
+          sortBy="averageRating"
           sortDir="desc"
           onBookClick={handleOpenDetail}
         />
