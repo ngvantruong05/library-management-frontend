@@ -117,16 +117,14 @@ const Navbar = ({ onSearch }) => {
                   </Link>
                 )}
 
-                <div 
+                <Link 
+                  to="/profile"
                   className="fx-dropdown-item" 
-                  onClick={() => {
-                    setShowProfileModal(true)
-                    setShowDropdown(false)
-                  }}
-                  style={{ cursor: 'pointer' }}
+                  onClick={() => setShowDropdown(false)}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
                 >
                   👤 Hồ sơ cá nhân
-                </div>
+                </Link>
 
                 <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
                   <span>Giao diện:</span>

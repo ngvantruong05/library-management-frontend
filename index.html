@@ -1,11 +1,91 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi" class="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>library-management-frontend</title>
-  </head>
+    <title>Lexicon LMS - Library Management System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS with Lexicon LMS theme extension -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container": "#e5eeff",
+              "on-secondary-fixed": "#00201d",
+              "outline": "#75777d",
+              "tertiary-fixed": "#ffddb8",
+              "primary-fixed-dim": "#bcc7de",
+              "on-primary": "#ffffff",
+              "surface-variant": "#d3e4fe",
+              "surface-bright": "#f8f9ff",
+              "on-error-container": "#93000a",
+              "on-secondary-fixed-variant": "#005049",
+              "on-primary-fixed-variant": "#3c475a",
+              "background": "#f8f9ff",
+              "secondary-container": "#86f2e4",
+              "on-secondary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb95f",
+              "inverse-surface": "#213145",
+              "on-surface": "#0b1c30",
+              "on-tertiary-container": "#c88000",
+              "secondary": "#006a61",
+              "on-tertiary": "#ffffff",
+              "inverse-primary": "#bcc7de",
+              "surface-tint": "#545f73",
+              "secondary-fixed-dim": "#6bd8cb",
+              "on-primary-fixed": "#111c2d",
+              "surface-container-lowest": "#ffffff",
+              "tertiary": "#201100",
+              "tertiary-container": "#3c2300",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed-variant": "#653e00",
+              "primary": "#091426",
+              "primary-fixed": "#d8e3fb",
+              "secondary-fixed": "#89f5e7",
+              "on-background": "#0b1c30",
+              "error-container": "#ffdad6",
+              "on-secondary-container": "#006f66",
+              "surface-dim": "#cbdbf5",
+              "surface": "#f8f9ff",
+              "surface-container-low": "#eff4ff",
+              "outline-variant": "#c5c6cd",
+              "on-primary-container": "#8590a6",
+              "surface-container-highest": "#d3e4fe",
+              "on-tertiary-fixed": "#2a1700",
+              "primary-container": "#1e293b",
+              "error": "#ba1a1a",
+              "on-surface-variant": "#45474c",
+              "inverse-on-surface": "#eaf1ff",
+              "surface-container-high": "#dce9ff"
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+              "body-md": ["Inter", "system-ui", "sans-serif"],
+              "display-lg": ["Inter", "system-ui", "sans-serif"],
+              "headline-lg": ["Inter", "system-ui", "sans-serif"],
+              "headline-md": ["Inter", "system-ui", "sans-serif"],
+              "title-lg": ["Inter", "system-ui", "sans-serif"],
+              "title-md": ["Inter", "system-ui", "sans-serif"],
+              "label-md": ["Inter", "system-ui", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"]
+            }
+          }
+        }
+      }
+    </script>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
