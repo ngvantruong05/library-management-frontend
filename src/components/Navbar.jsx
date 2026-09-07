@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import ProfileModal from './ProfileModal'
+import NotificationBell from './NotificationBell'
 
 const Navbar = ({ onSearch }) => {
   const { user, logout } = useAuth()
@@ -88,7 +89,9 @@ const Navbar = ({ onSearch }) => {
         </nav>
         
         {user ? (
-          <div className="fx-user-menu-container">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <NotificationBell />
+            <div className="fx-user-menu-container">
             <div 
               className="fx-user-avatar" 
               title={user.displayName || 'User Profile'}
@@ -138,6 +141,7 @@ const Navbar = ({ onSearch }) => {
                 </button>
               </div>
             )}
+          </div>
           </div>
         ) : (
           <Link to="/login" className="fx-login-btn-nav" style={{
