@@ -128,6 +128,31 @@ const MyLoans = () => {
     return `${day}/${month}/${year}`
   }
 
+  const getDueDateBadge = (loan) => {
+    if (!loan.valid || loan.status === 'RETURNED' || !loan.dueDate) return null
+    const due = new Date(loan.dueDate)
+    const now = new Date()
+    // Reset times to compare dates
+    due.setHours(0,0,0,0)
+    now.setHours(0,0,0,0)
+    const diffDays = Math.round((due - now) / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0 || loan.status === 'OVERDUE') {
+      return (
+        <span className="fx-loan-chip" style={{ backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5' }}>
+          🚨 Quá hạn {Math.abs(diffDays)} ngày
+        </span>
+      )
+    } else if (diffDays <= 3) {
+      return (
+        <span className="fx-loan-chip" style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+          ⚠️ Sắp hết hạn ({diffDays === 0 ? 'Hôm nay' : `${diffDays} ngày`})
+        </span>
+      )
+    }
+    return null
+  }
+
   return (
     <div className="fx-catalog-page" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {toast && (
@@ -268,6 +293,7 @@ const MyLoans = () => {
                     <span className={`fx-loan-chip ${loan.valid ? 'chip-success' : 'chip-danger'}`}>
                       {loan.valid ? 'Valid' : (loan.status === 'RETURNED' ? 'Returned' : 'Expired')}
                     </span>
+                    {getDueDateBadge(loan)}
                   </div>
 
                   {/* Action Buttons */}

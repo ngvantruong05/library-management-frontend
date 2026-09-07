@@ -975,66 +975,73 @@
   max-width: 350px;
 }
 
-/* Loan status badges colors */
-.admin-badge-status-borrowed {
-  background-color: rgba(59, 130, 246, 0.15);
-  color: var(--color-primary);
+/* Loan & Fine status badges - Modern Pill Style */
+.admin-badge-status-borrowed,
+.admin-badge-status-overdue,
+.admin-badge-status-returned,
+.admin-badge-status-unpaid,
+.admin-badge-status-pending,
+.admin-badge-status-paid {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.admin-badge-status-borrowed::before,
+.admin-badge-status-overdue::before,
+.admin-badge-status-returned::before,
+.admin-badge-status-unpaid::before,
+.admin-badge-status-pending::before,
+.admin-badge-status-paid::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+
+.admin-badge-status-borrowed {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: var(--color-primary);
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 .admin-badge-status-overdue {
-  background-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.12);
   color: var(--color-danger);
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .admin-badge-status-returned {
-  background-color: rgba(16, 185, 129, 0.15);
+  background-color: rgba(16, 185, 129, 0.12);
   color: var(--color-success);
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
-/* Fine status badges colors */
 .admin-badge-status-unpaid {
-  background-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.12);
   color: var(--color-danger);
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .admin-badge-status-pending {
-  background-color: rgba(245, 158, 11, 0.15);
+  background-color: rgba(245, 158, 11, 0.12);
   color: #d97706;
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .admin-badge-status-paid {
-  background-color: rgba(16, 185, 129, 0.15);
+  background-color: rgba(16, 185, 129, 0.12);
   color: var(--color-success);
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 /* Bento Grid Dashboard Additions - Integrated with Theme Variables */
@@ -1375,4 +1382,35 @@
 
 .profile-avatar-wrapper:hover .profile-avatar-overlay {
   opacity: 1;
+}
+
+.profile-avatar-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.profile-avatar-delete-btn:hover:not(:disabled) {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.3);
+}
+
+.profile-avatar-delete-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.profile-avatar-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

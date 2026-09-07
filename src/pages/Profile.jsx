@@ -19,8 +19,6 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [isSavingInfo, setIsSavingInfo] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
-  const [showUrlInput, setShowUrlInput] = useState(false)
-  const [inputUrl, setInputUrl] = useState('')
 
   // Password change state
   const [oldPassword, setOldPassword] = useState('')
@@ -157,14 +155,6 @@ const Profile = () => {
     }
   }
 
-  // Handle Apply Image URL directly
-  const handleApplyUrl = async () => {
-    if (!inputUrl.trim()) return
-    setPhotoUrl(inputUrl.trim())
-    await saveAvatarToBackend(inputUrl.trim())
-    setShowUrlInput(false)
-    setInputUrl('')
-  }
 
   // Remove avatar
   const handleRemoveAvatar = async () => {
@@ -468,9 +458,6 @@ const Profile = () => {
           {/* Header */}
           <div style={{ marginBottom: '1.5rem' }}>
             <h1 className="db-section-title">Hồ sơ cá nhân</h1>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Quản lý thông tin tài khoản, cập nhật ảnh đại diện, bảo mật và tra cứu lịch sử mượn sách.
-            </span>
           </div>
 
           {/* 2-Column Responsive Layout */}
@@ -501,7 +488,7 @@ const Profile = () => {
                   {isAdmin ? 'Quản trị viên Thư viện (Administrator)' : 'Độc giả thành viên (Library Member)'}
                 </span>
 
-                <div style={{ display: 'flex', gap: '0.5rem', width: '100%', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                   <button
                     type="button"
                     className="admin-btn-default"
@@ -514,46 +501,30 @@ const Profile = () => {
                   {photoUrl && (
                     <button
                       type="button"
-                      className="admin-btn-default"
+                      className="profile-avatar-delete-btn"
                       onClick={handleRemoveAvatar}
-                      title="Gỡ ảnh"
-                      style={{ color: 'var(--color-danger)' }}
+                      title="Xóa ảnh đại diện"
+                      aria-label="Xóa ảnh đại diện"
+                      disabled={isUploadingAvatar}
                     >
-                      🗑️
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
                     </button>
                   )}
                 </div>
-
-                <button
-                  type="button"
-                  className="admin-btn-default"
-                  onClick={() => setShowUrlInput(!showUrlInput)}
-                  style={{ width: '100%', fontSize: '0.8rem', padding: '0.35rem 0.5rem', color: 'var(--text-secondary)' }}
-                >
-                  🔗 {showUrlInput ? 'Ẩn ô nhập URL' : 'Hoặc dán URL ảnh trực tiếp'}
-                </button>
-
-                {showUrlInput && (
-                  <div style={{ width: '100%', marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <input
-                      type="url"
-                      className="form-input"
-                      placeholder="https://example.com/avatar.jpg"
-                      value={inputUrl}
-                      onChange={(e) => setInputUrl(e.target.value)}
-                      style={{ fontSize: '0.85rem', padding: '0.4rem 0.6rem' }}
-                    />
-                    <button
-                      type="button"
-                      className="catalog-btn-primary"
-                      onClick={handleApplyUrl}
-                      disabled={!inputUrl.trim() || isUploadingAvatar}
-                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
-                    >
-                      Áp dụng & Lưu URL
-                    </button>
-                  </div>
-                )}
               </div>
 
               {/* Password Card */}
@@ -721,10 +692,10 @@ const Profile = () => {
                       <thead>
                         <tr>
                           <th>Tác phẩm</th>
-                          <th>Ngày mượn</th>
-                          <th>Hạn trả</th>
-                          <th>Định dạng</th>
-                          <th>Trạng thái</th>
+                          <th style={{ whiteSpace: 'nowrap' }}>Ngày mượn</th>
+                          <th style={{ whiteSpace: 'nowrap' }}>Hạn trả</th>
+                          <th style={{ whiteSpace: 'nowrap' }}>Định dạng</th>
+                          <th style={{ whiteSpace: 'nowrap' }}>Trạng thái</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -734,14 +705,14 @@ const Profile = () => {
                               <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{loan.bookTitle}</div>
                               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mã phiếu: #{loan.id}</div>
                             </td>
-                            <td>{formatDate(loan.borrowDate)}</td>
-                            <td>{formatDate(loan.dueDate)}</td>
-                            <td>
+                            <td style={{ whiteSpace: 'nowrap' }}>{formatDate(loan.borrowDate)}</td>
+                            <td style={{ whiteSpace: 'nowrap' }}>{formatDate(loan.dueDate)}</td>
+                            <td style={{ whiteSpace: 'nowrap' }}>
                               <span style={{ fontSize: '0.85rem' }}>
                                 {loan.type === 'ONLINE' ? '💻 E-Book' : '📖 Sách giấy'}
                               </span>
                             </td>
-                            <td>
+                            <td style={{ whiteSpace: 'nowrap' }}>
                               <span className={
                                 loan.status === 'RETURNED'
                                   ? 'admin-badge-status-returned'
