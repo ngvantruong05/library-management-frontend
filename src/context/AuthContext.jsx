@@ -41,7 +41,6 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const login = async (email, password) => {
-    setIsLoading(true)
     try {
       const response = await api.post('/api/auth/login', { email, password })
       const { accessToken, refreshToken, displayName, role } = response.data
@@ -54,15 +53,12 @@ export const AuthProvider = ({ children }) => {
       return { success: true, role }
     } catch (error) {
       console.error('Login failed:', error)
-      const message = error.response?.data?.message || 'Invalid email or password'
+      const message = error.response?.data?.message || 'Tài khoản hoặc mật khẩu không đúng'
       return { success: false, error: message }
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const register = async (formData) => {
-    setIsLoading(true)
     try {
       const response = await api.post('/api/auth/register', formData)
       const { accessToken, refreshToken, email, displayName, role } = response.data
@@ -75,10 +71,26 @@ export const AuthProvider = ({ children }) => {
       return { success: true, role }
     } catch (error) {
       console.error('Registration failed:', error)
-      const message = error.response?.data?.message || 'Registration failed'
+      const message = error.response?.data?.message || 'Đăng ký không thành công'
       return { success: false, error: message }
-    } finally {
-      setIsLoading(false)
+    }
+  }
+
+  const loginWithGoogle = async (googlePayload) => {
+    try {
+      const response = await api.post('/api/auth/google', googlePayload)
+      const { accessToken, refreshToken, email, displayName, role } = response.data
+      
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+      
+      setUser({ email, displayName, role })
+      setIsAuthenticated(true)
+      return { success: true, role }
+    } catch (error) {
+      console.error('Google Login failed:', error)
+      const message = error.response?.data?.message || 'Đăng nhập bằng Google thất bại'
+      return { success: false, error: message }
     }
   }
 
@@ -97,6 +109,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         isLoading,
         login,
+        loginWithGoogle,
         register,
         logout,
       }}

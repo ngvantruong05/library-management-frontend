@@ -43,7 +43,11 @@ api.interceptors.response.use(
 
     // If error is 401 Unauthorized and not already retried
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (originalRequest.url === '/api/auth/login' || originalRequest.url === '/api/auth/register') {
+      if (
+        originalRequest.url?.includes('/api/auth/login') ||
+        originalRequest.url?.includes('/api/auth/register') ||
+        originalRequest.url?.includes('/api/auth/google')
+      ) {
         return Promise.reject(error)
       }
 
