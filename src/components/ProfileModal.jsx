@@ -79,9 +79,9 @@ const ProfileModal = ({ show, onClose }) => {
     }
   }
 
-  // Crop image to 120x120 pixels using canvas (matches FX UploadFileUtil.cropImage)
+  // Crop image to 120x120 pixels JPEG compressed Base64 string for photoUrl
   const handleFileChange = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files?.[0]
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
@@ -94,24 +94,27 @@ const ProfileModal = ({ show, onClose }) => {
       const img = new Image()
       img.onload = () => {
         const canvas = document.createElement('canvas')
-        const size = 120
+        const size = 80
         canvas.width = size
         canvas.height = size
         const ctx = canvas.getContext('2d')
         
-        // Circular center-crop calculations
         const minSide = Math.min(img.width, img.height)
         const sx = (img.width - minSide) / 2
         const sy = (img.height - minSide) / 2
         
         ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size)
         
-        const base64Image = canvas.toDataURL('image/png')
+        const base64Image = canvas.toDataURL('image/jpeg', 0.65)
         setPhotoUrl(base64Image)
       }
       img.src = event.target.result
     }
     reader.readAsDataURL(file)
+
+    if (e.target) {
+      e.target.value = ''
+    }
   }
 
   // Generate initials for avatar placeholder

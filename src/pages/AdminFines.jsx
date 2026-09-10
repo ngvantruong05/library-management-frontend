@@ -230,14 +230,20 @@ const AdminFines = () => {
             <div className="fx-user-menu-container">
               <div
                 className="fx-user-avatar"
-                style={{ border: '2px solid var(--color-primary)' }}
+                style={{
+                  border: '2px solid var(--color-primary)',
+                  backgroundImage: user.photoUrl ? `url(${user.photoUrl})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  cursor: 'pointer'
+                }}
                 title={user.displayName || 'Admin'}
                 onClick={(e) => {
                   e.stopPropagation()
                   setShowDropdown(!showDropdown)
                 }}
               >
-                {getInitials(user.displayName)}
+                {!user.photoUrl && getInitials(user.displayName)}
               </div>
 
               {showDropdown && (
@@ -247,6 +253,10 @@ const AdminFines = () => {
                     <span className="fx-dropdown-email">{user.email || ''}</span>
                     <span className="db-badge db-badge-admin" style={{ marginTop: '0.25rem', display: 'inline-block' }}>Admin</span>
                   </div>
+
+                  <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
+                    👤 Hồ sơ cá nhân & Avatar
+                  </Link>
 
                   <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
                     <span>Theme:</span>

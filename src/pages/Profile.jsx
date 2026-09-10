@@ -81,30 +81,7 @@ const Profile = () => {
     }
   }
 
-  // Save avatar to backend with optimistic update fallback
-  const saveAvatarToBackend = async (newPhotoUrl) => {
-    setIsUploadingAvatar(true)
-    try {
-      const payload = {
-        displayName: displayName || user?.displayName || '',
-        phoneNumber: phoneNumber || user?.phoneNumber || '',
-        birthday: birthday || user?.birthday || '',
-        photoUrl: newPhotoUrl
-      }
-      const response = await api.put('/api/auth/me', payload)
-      setUser(response.data)
-      showToast('Cập nhật ảnh đại diện thành công!', 'success')
-    } catch (error) {
-      console.warn('API error saving avatar, applying optimistic fallback:', error)
-      // Optimistic fallback: update local user object so the avatar displays immediately
-      setUser(prev => ({ ...(prev || {}), photoUrl: newPhotoUrl }))
-      showToast('Đã áp dụng ảnh đại diện!', 'success')
-    } finally {
-      setIsUploadingAvatar(false)
-    }
-  }
-
-  // Handle Avatar file change with canvas center-crop to 120x120 JPEG
+  // Handle Avatar file selection with 120x120 JPEG Canvas compression -> Save directly to DB via PUT /api/auth/me
   const handleFileChange = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -121,7 +98,7 @@ const Profile = () => {
       img.onload = async () => {
         try {
           const canvas = document.createElement('canvas')
-          const size = 120
+          const size = 80
           canvas.width = size
           canvas.height = size
           const ctx = canvas.getContext('2d')
@@ -131,16 +108,23 @@ const Profile = () => {
           const sy = (img.height - minSide) / 2
           ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size)
 
-          const base64Image = canvas.toDataURL('image/jpeg', 0.8)
-          setPhotoUrl(base64Image)
-          await saveAvatarToBackend(base64Image)
+          const base64Image = canvas.toDataURL('image/jpeg', 0.65)
+
+          setIsUploadingAvatar(true)
+          const response = await api.put('/api/auth/me/avatar', { photoUrl: base64Image })
+          setUser(response.data)
+          setPhotoUrl(response.data.photoUrl || '')
+          showToast('Cập nhật ảnh đại diện thành công!', 'success')
         } catch (err) {
-          console.error('Error processing image canvas:', err)
-          showToast('Có lỗi khi xử lý ảnh.', 'error')
+          console.error('Error processing or saving avatar:', err.response?.data || err)
+          const errorMsg = err.response?.data?.message || err.message || 'Không thể lưu ảnh đại diện vào cơ sở dữ liệu.'
+          showToast(errorMsg, 'error')
+        } finally {
+          setIsUploadingAvatar(false)
         }
       }
       img.onerror = () => {
-        showToast('Không thể giải mã file ảnh này.', 'error')
+        showToast('Không thể giải mã tệp ảnh này.', 'error')
       }
       img.src = event.target.result
     }
@@ -149,31 +133,25 @@ const Profile = () => {
     }
     reader.readAsDataURL(file)
 
-    // Reset input so selecting the same file again still fires onChange
     if (e.target) {
       e.target.value = ''
     }
   }
 
-
   // Remove avatar
   const handleRemoveAvatar = async () => {
+    setIsUploadingAvatar(true)
     try {
-      const payload = {
-        displayName: displayName || user?.displayName || '',
-        phoneNumber: phoneNumber || user?.phoneNumber || '',
-        birthday: birthday || user?.birthday || '',
-        photoUrl: ''
-      }
-      await api.put('/api/auth/me', payload)
-      setUser(prev => ({ ...(prev || {}), photoUrl: '' }))
+      const response = await api.put('/api/auth/me/avatar', { photoUrl: '' })
+      setUser(response.data)
       setPhotoUrl('')
-      showToast('Đã xóa ảnh đại diện!', 'success')
+      showToast('Đã xóa ảnh đại diện thành công!', 'success')
     } catch (err) {
-      console.warn('Failed to remove avatar from backend, applying locally:', err)
-      setUser(prev => ({ ...(prev || {}), photoUrl: '' }))
-      setPhotoUrl('')
-      showToast('Đã gỡ ảnh đại diện!', 'success')
+      console.error('Failed to remove avatar from backend:', err.response?.data || err)
+      const errorMsg = err.response?.data?.message || err.message || 'Lỗi khi xóa ảnh đại diện.'
+      showToast(errorMsg, 'error')
+    } finally {
+      setIsUploadingAvatar(false)
     }
   }
 
