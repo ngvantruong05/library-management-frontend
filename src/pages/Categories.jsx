@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import BookCard from '../components/BookCard'
 import BookDetailsModal from '../components/BookDetailsModal'
 import '../styles/catalog.css'
+
+const PAGE_SIZE = 12
 
 // Helper icon picker based on category name
 const getCategoryIcon = (name = '') => {
@@ -31,7 +33,14 @@ const Categories = () => {
   const [categories, setCategories] = useState([])
   const [books, setBooks] = useState([])
   const [selectedCategoryId, setSelectedCategoryId] = useState(initialCategoryId ? Number(initialCategoryId) : null)
-  const [isLoading, setIsLoading] = useState(true)
+
+  // Pagination & Loading states
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+  const [isLoadingBooks, setIsLoadingBooks] = useState(true)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
 
   // Search & Filter states
   const [categorySearch, setCategorySearch] = useState('')
@@ -42,140 +51,124 @@ const Categories = () => {
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
 
+  // Ref guards for infinite scroll & request race conditions
+  const isFetchingRef = useRef(false)
+  const hasMoreRef = useRef(true)
+  const pageRef = useRef(0)
+  const selectedCatRef = useRef(null)
+  const queryRef = useRef('')
+  const requestIdRef = useRef(0)
+
+  isFetchingRef.current = isFetchingMore || isLoadingBooks
+  hasMoreRef.current = hasMore
+  pageRef.current = page
+  selectedCatRef.current = selectedCategoryId
+  queryRef.current = bookSearch
+
   // Toast notification
   const showToast = (message, type = 'success') => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 4000)
   }
 
-  // Fetch initial data
-  const fetchInitialData = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const [catRes, bookRes] = await Promise.all([
-        api.get('/api/categories'),
-        api.get('/api/books')
-      ])
-
-      const fetchedCategories = catRes.data || []
-      const fetchedBooks = Array.isArray(bookRes.data?.content) ? bookRes.data.content : (bookRes.data || [])
-
-      setCategories(fetchedCategories)
-      setBooks(fetchedBooks)
-
-      // Match category from initial query
-      if (initialCategoryId) {
-        setSelectedCategoryId(Number(initialCategoryId))
-      } else if (initialCategoryName) {
-        const found = fetchedCategories.find((c) => c.name.toLowerCase() === initialCategoryName.toLowerCase())
-        if (found) setSelectedCategoryId(found.id)
-      }
-    } catch (error) {
-      console.error('Failed to fetch categories/books, loading fallback mock data:', error)
-      
-      const mockCategories = [
-        { id: 1, name: 'Software Engineering' },
-        { id: 2, name: 'Programming' },
-        { id: 3, name: 'Quantum Physics' },
-        { id: 4, name: 'Data Science & AI' },
-        { id: 5, name: 'Web Development' },
-        { id: 6, name: 'Design & Architecture' },
-        { id: 7, name: 'Database Management' },
-        { id: 8, name: 'Business & Economics' },
-      ]
-
-      const mockBooks = [
-        {
-          id: 1,
-          title: 'Clean Code: A Handbook of Agile Software Craftsmanship',
-          isbn: '978-0132350884',
-          description: "Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code.",
-          publishedDate: '2008-08-11',
-          pageCount: 464,
-          price: 178500,
-          discountPrice: 178500,
-          thumbnail: 'https://images-na.ssl-images-amazon.com/images/I/41xShCOK5mL._SX379_BO1,204,203,200_.jpg',
-          language: 'English',
-          currencyCode: 'VND',
-          publisher: { id: 1, name: 'Prentice Hall' },
-          authors: [{ id: 1, name: 'Robert C. Martin' }],
-          categories: [{ id: 1, name: 'Software Engineering' }, { id: 2, name: 'Programming' }],
-          availableCopies: 5,
-          rating: 4.8
-        },
-        {
-          id: 2,
-          title: 'The Pragmatic Programmer: Your Journey To Mastery',
-          isbn: '978-0135957059',
-          description: "The Pragmatic Programmer is one of those rare tech books you'll read, re-read, and read again over the years. Whether you're new to the field or an experienced practitioner, you'll come away with fresh insights.",
-          publishedDate: '2019-09-13',
-          pageCount: 352,
-          price: 180531,
-          discountPrice: 0,
-          thumbnail: 'https://images-na.ssl-images-amazon.com/images/I/51wI75O1rHL._SX386_BO1,204,203,200_.jpg',
-          language: 'English',
-          currencyCode: 'VND',
-          publisher: { id: 2, name: 'Addison-Wesley' },
-          authors: [{ id: 2, name: 'Andrew Hunt' }, { id: 3, name: 'David Thomas' }],
-          categories: [{ id: 2, name: 'Programming' }, { id: 6, name: 'Design & Architecture' }],
-          availableCopies: 0,
-          rating: 4.7
-        },
-        {
-          id: 3,
-          title: 'Dancing with Python: Learn to code with Python and Quantum Computing',
-          isbn: '978-1801077859',
-          description: 'Dancing with Python helps you learn Python programming from scratch. From variables and loops to functions and classes, we guide you step-by-step through standard Python concepts before introducing quantum computing theory.',
-          publishedDate: '2021-09-24',
-          pageCount: 420,
-          price: 245000,
-          discountPrice: 195000,
-          thumbnail: 'https://images-na.ssl-images-amazon.com/images/I/41x94N1mY6L._SX404_BO1,204,203,200_.jpg',
-          language: 'English',
-          currencyCode: 'VND',
-          publisher: { id: 3, name: 'Packt Publishing' },
-          authors: [{ id: 4, name: 'Robert S. Sutor' }],
-          categories: [{ id: 2, name: 'Programming' }, { id: 3, name: 'Quantum Physics' }, { id: 4, name: 'Data Science & AI' }],
-          availableCopies: 3,
-          rating: 4.5
-        },
-        {
-          id: 4,
-          title: 'Designing Data-Intensive Applications',
-          isbn: '978-1449373320',
-          description: 'Data is at the center of many challenges in system design today. Difficult issues need to be figured out, such as scalability, consistency, reliability, efficiency, and maintainability.',
-          publishedDate: '2017-03-16',
-          pageCount: 616,
-          price: 320000,
-          discountPrice: 280000,
-          thumbnail: 'https://images-na.ssl-images-amazon.com/images/I/51ZSpMl1-2L._SX379_BO1,204,203,200_.jpg',
-          language: 'English',
-          currencyCode: 'VND',
-          publisher: { id: 4, name: "O'Reilly Media" },
-          authors: [{ id: 5, name: 'Martin Kleppmann' }],
-          categories: [{ id: 1, name: 'Software Engineering' }, { id: 4, name: 'Data Science & AI' }, { id: 7, name: 'Database Management' }],
-          availableCopies: 4,
-          rating: 4.9
-        }
-      ]
-
-      setCategories(mockCategories)
-      setBooks(mockBooks)
-
-      if (initialCategoryId) {
-        setSelectedCategoryId(Number(initialCategoryId))
-      } else if (initialCategoryName) {
-        const found = mockCategories.find((c) => c.name.toLowerCase() === initialCategoryName.toLowerCase())
-        if (found) setSelectedCategoryId(found.id)
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }, [initialCategoryId, initialCategoryName])
-
+  // 1. Fetch Categories list on mount
   useEffect(() => {
-    fetchInitialData()
-  }, [fetchInitialData])
+    const fetchCategories = async () => {
+      setIsLoadingCategories(true)
+      try {
+        const catRes = await api.get('/api/categories')
+        const fetchedCategories = catRes.data || []
+        setCategories(fetchedCategories)
+
+        if (initialCategoryId) {
+          setSelectedCategoryId(Number(initialCategoryId))
+        } else if (initialCategoryName) {
+          const found = fetchedCategories.find((c) => c.name.toLowerCase() === initialCategoryName.toLowerCase())
+          if (found) setSelectedCategoryId(found.id)
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error)
+      } finally {
+        setIsLoadingCategories(false)
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  // 2. Fetch Books for current category & search query with pagination
+  const fetchBooksPage = useCallback(async (pageToFetch, catId, query = '', isInitial = false) => {
+    const currentRequestId = ++requestIdRef.current
+
+    if (pageToFetch === 0) {
+      setIsLoadingBooks(true)
+      setBooks([]) // Clear previous category's books instantly so skeleton cards show up immediately
+    } else {
+      setIsFetchingMore(true)
+    }
+
+    try {
+      const params = {
+        page: pageToFetch,
+        size: PAGE_SIZE,
+        sortBy: 'id',
+        sortDir: 'desc'
+      }
+      if (catId !== null && catId !== undefined) {
+        params.categoryId = catId
+      }
+      if (query && query.trim()) {
+        params.q = query.trim()
+      }
+
+      const response = await api.get('/api/books', { params })
+
+      // Ignore stale request if a newer category request was launched
+      if (currentRequestId !== requestIdRef.current) return
+
+      const data = response.data
+
+      let newItems = []
+      let isLast = true
+      let total = 0
+
+      if (data && Array.isArray(data.content)) {
+        newItems = data.content
+        isLast = data.last ?? (newItems.length < PAGE_SIZE)
+        total = data.totalElements ?? newItems.length
+      } else if (Array.isArray(data)) {
+        newItems = data.slice(pageToFetch * PAGE_SIZE, (pageToFetch + 1) * PAGE_SIZE)
+        isLast = (pageToFetch + 1) * PAGE_SIZE >= data.length
+        total = data.length
+      }
+
+      if (pageToFetch === 0) {
+        setBooks(newItems)
+      } else {
+        setBooks(prev => {
+          const existingIds = new Set(prev.map(b => b.id))
+          const filteredNew = newItems.filter(b => !existingIds.has(b.id))
+          return [...prev, ...filteredNew]
+        })
+      }
+
+      setPage(pageToFetch)
+      setHasMore(!isLast && newItems.length > 0)
+      setTotalElements(total)
+    } catch (error) {
+      if (currentRequestId !== requestIdRef.current) return
+      console.error('Failed to fetch books:', error)
+    } finally {
+      if (currentRequestId === requestIdRef.current) {
+        setIsLoadingBooks(false)
+        setIsFetchingMore(false)
+      }
+    }
+  }, [])
+
+  // Fetch books whenever selectedCategoryId or bookSearch changes
+  useEffect(() => {
+    fetchBooksPage(0, selectedCategoryId, bookSearch, true)
+  }, [selectedCategoryId, bookSearch, fetchBooksPage])
 
   // Sync state if URL changes
   useEffect(() => {
@@ -183,27 +176,24 @@ const Categories = () => {
     const paramName = searchParams.get('name')
 
     if (paramId) {
-      setSelectedCategoryId(Number(paramId))
+      const numId = Number(paramId)
+      if (numId !== selectedCategoryId) {
+        setSelectedCategoryId(numId)
+      }
     } else if (paramName && categories.length > 0) {
       const found = categories.find((c) => c.name.toLowerCase() === paramName.toLowerCase())
-      if (found) setSelectedCategoryId(found.id)
-    } else {
-      setSelectedCategoryId(null)
+      if (found && found.id !== selectedCategoryId) {
+        setSelectedCategoryId(found.id)
+      }
     }
   }, [searchParams, categories])
 
-  // Category book counts map
-  const categoryBookCounts = useMemo(() => {
-    const counts = {}
-    books.forEach((book) => {
-      book.categories?.forEach((cat) => {
-        counts[cat.id] = (counts[cat.id] || 0) + 1
-      })
-    })
-    return counts
-  }, [books])
+  // Total count across all categories
+  const totalAllBooksCount = useMemo(() => {
+    return categories.reduce((sum, c) => sum + (c.bookCount || 0), 0)
+  }, [categories])
 
-  // Filtered categories in left sidebar
+  // Filtered categories in left sidebar search input
   const filteredCategories = useMemo(() => {
     const q = categorySearch.toLowerCase().trim()
     if (!q) return categories
@@ -212,6 +202,7 @@ const Categories = () => {
 
   // Handle Category Selection
   const handleSelectCategory = (catId) => {
+    if (selectedCategoryId === catId) return
     setSelectedCategoryId(catId)
     setBookSearch('')
     if (catId === null) {
@@ -221,29 +212,27 @@ const Categories = () => {
     }
   }
 
-  // Filtered Books
-  const displayedBooks = useMemo(() => {
-    let result = books
+  // Load next batch when scrolling
+  const loadNextPage = useCallback(() => {
+    if (isFetchingRef.current || !hasMoreRef.current) return
+    const nextPage = pageRef.current + 1
+    fetchBooksPage(nextPage, selectedCatRef.current, queryRef.current, false)
+  }, [fetchBooksPage])
 
-    // Filter by Category
-    if (selectedCategoryId !== null) {
-      result = result.filter((b) => b.categories?.some((c) => c.id === selectedCategoryId))
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      const scrollHeight = document.documentElement.scrollHeight
+      const clientHeight = window.innerHeight
+
+      if (scrollTop + clientHeight >= scrollHeight * 0.85) {
+        loadNextPage()
+      }
     }
 
-    // Filter by Book Search keyword
-    const q = bookSearch.toLowerCase().trim()
-    if (q) {
-      result = result.filter(
-        (b) =>
-          b.title?.toLowerCase().includes(q) ||
-          b.isbn?.toLowerCase().includes(q) ||
-          b.authors?.some((a) => a.name?.toLowerCase().includes(q)) ||
-          b.categories?.some((c) => c.name?.toLowerCase().includes(q))
-      )
-    }
-
-    return result
-  }, [books, selectedCategoryId, bookSearch])
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [loadNextPage])
 
   // Open book detailed view
   const handleOpenDetail = (book) => {
@@ -271,7 +260,7 @@ const Categories = () => {
 
       {/* Main Content Explorer */}
       <main className="fx-content-container">
-        {isLoading ? (
+        {isLoadingCategories ? (
           <div className="catalog-loader-container">
             <div className="catalog-spinner"></div>
             <p>Loading library categories...</p>
@@ -332,14 +321,14 @@ const Categories = () => {
                 >
                   <span className="fx-cat-item-icon">🌟</span>
                   <span className="fx-cat-item-name">All Categories</span>
-                  <span className="fx-cat-item-count">{books.length}</span>
+                  <span className="fx-cat-item-count">{totalAllBooksCount}</span>
                 </button>
 
                 {filteredCategories.length === 0 ? (
                   <div className="fx-cat-no-match">No category found</div>
                 ) : (
                   filteredCategories.map((cat) => {
-                    const count = categoryBookCounts[cat.id] || 0
+                    const count = cat.bookCount || 0
                     const isSelected = selectedCategoryId === cat.id
                     const icon = getCategoryIcon(cat.name)
 
@@ -365,8 +354,20 @@ const Categories = () => {
                RIGHT CONTENT: BOOKS GRID
                ==================================================================== */}
             <section className="fx-cat-main-content">
-              {/* Books Grid Display */}
-              {displayedBooks.length === 0 ? (
+              {isLoadingBooks ? (
+                /* Instant Skeleton Shimmer Grid Feedback when switching categories */
+                <div className="fx-book-grid fx-cat-books-grid">
+                  {Array.from({ length: 8 }).map((_, idx) => (
+                    <div key={`category-switch-skeleton-${idx}`} className="fx-skeleton-card">
+                      <div className="fx-skeleton-thumb"></div>
+                      <div className="fx-skeleton-line fx-skeleton-line-title"></div>
+                      <div className="fx-skeleton-line fx-skeleton-line-author"></div>
+                      <div className="fx-skeleton-line fx-skeleton-line-tag"></div>
+                      <div className="fx-skeleton-shimmer"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : books.length === 0 ? (
                 <div className="catalog-empty-container fx-empty-category-box">
                   <svg
                     width="60"
@@ -404,13 +405,24 @@ const Categories = () => {
                 </div>
               ) : (
                 <div className="fx-book-grid fx-cat-books-grid">
-                  {displayedBooks.map((book) => (
+                  {books.map((book) => (
                     <BookCard
                       key={book.id}
                       book={book}
                       onClick={handleOpenDetail}
                       showRating={true}
                     />
+                  ))}
+
+                  {/* Skeleton placeholder cards ("mờ mờ") when scrolling to load next batch */}
+                  {isFetchingMore && Array.from({ length: 4 }).map((_, idx) => (
+                    <div key={`skeleton-${idx}`} className="fx-skeleton-card">
+                      <div className="fx-skeleton-thumb"></div>
+                      <div className="fx-skeleton-line fx-skeleton-line-title"></div>
+                      <div className="fx-skeleton-line fx-skeleton-line-author"></div>
+                      <div className="fx-skeleton-line fx-skeleton-line-tag"></div>
+                      <div className="fx-skeleton-shimmer"></div>
+                    </div>
                   ))}
                 </div>
               )}

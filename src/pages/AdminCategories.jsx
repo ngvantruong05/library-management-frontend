@@ -12,7 +12,6 @@ const AdminCategories = () => {
 
   // Data states
   const [categories, setCategories] = useState([])
-  const [books, setBooks] = useState([])
   const [filteredCategories, setFilteredCategories] = useState([])
 
   // Search & Pagination states
@@ -54,7 +53,7 @@ const AdminCategories = () => {
     }
   }, [])
 
-  // Fetch categories and books on mount
+  // Fetch categories on mount
   useEffect(() => {
     fetchData()
   }, [])
@@ -62,22 +61,14 @@ const AdminCategories = () => {
   // Re-apply filter and pagination when categories list, search query, or page parameters change
   useEffect(() => {
     applyFiltersAndPagination()
-  }, [categories, books, searchQuery, page, pageSize])
+  }, [categories, searchQuery, page, pageSize])
 
   const fetchData = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const [catRes, bookRes] = await Promise.all([
-        api.get('/api/categories'),
-        api.get('/api/books') // To count books per category
-      ])
+      const catRes = await api.get('/api/categories')
       setCategories(catRes.data || [])
-      
-      const fetchedBooks = Array.isArray(bookRes.data?.content) 
-        ? bookRes.data.content 
-        : (bookRes.data || [])
-      setBooks(fetchedBooks)
     } catch (err) {
       console.error('Failed to load category dashboard data:', err)
       setError('Failed to fetch categories list. Please try again.')
@@ -86,9 +77,11 @@ const AdminCategories = () => {
     }
   }
 
-  // Calculate book count map
-  const getBookCountForCategory = (catId) => {
-    return books.filter(b => b.categories?.some(c => c.id === catId)).length
+  // Calculate book count for category from backend DTO
+  const getBookCountForCategory = (cat) => {
+    if (typeof cat === 'object' && cat !== null) return cat.bookCount || 0
+    const found = categories.find(c => c.id === cat)
+    return found?.bookCount || 0
   }
 
   const applyFiltersAndPagination = () => {
