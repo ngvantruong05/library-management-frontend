@@ -11,7 +11,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
 
   const isPaid = fine.status === 'PAID'
   const isPending = fine.status === 'PENDING'
-  const bankName = 'MB Bank (Ngân hàng TMCP Quân Đội)'
+  const bankName = 'MB Bank (Military Commercial Bank)'
   const accountNumber = '0123456789'
   const accountHolder = 'THU VIEN UET'
   const transferContent = `NOP PHAT LOAN ${fine.bookLoanId}`
@@ -33,7 +33,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
   }
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'VND',
     }).format(amount || 0)
@@ -60,7 +60,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
       }
     } catch (err) {
       console.error('Failed to submit payment:', err)
-      setErrorMsg(err.response?.data?.message || 'Có lỗi xảy ra khi gửi yêu cầu thanh toán.')
+      setErrorMsg(err.response?.data?.message || 'An error occurred while submitting payment request.')
     } finally {
       setIsSubmitting(false)
     }
@@ -77,7 +77,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
     return (
       <button
         onClick={() => handleCopy(text, fieldName)}
-        title={isCopied ? 'Đã sao chép' : 'Sao chép'}
+        title={isCopied ? 'Copied' : 'Copy'}
         style={{
           background: 'none',
           border: '1px solid var(--border-color)',
@@ -124,7 +124,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <span style={{ fontSize: '1.4rem' }}>{isPaid ? '🧾' : '💳'}</span>
             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {isPaid ? 'Biên lai Nộp phạt Thư viện' : (isPending ? 'Thông tin Chuyển khoản Nộp phạt' : 'Nộp phạt Thư viện qua VietQR')}
+              {isPaid ? 'Library Fine Receipt' : (isPending ? 'Fine Payment Transfer Info' : 'Pay Library Fine via VietQR')}
             </h3>
           </div>
           <button
@@ -145,7 +145,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
         {/* Modal Body */}
         <div style={{ padding: '1.5rem 1.75rem', maxHeight: '78vh', overflowY: 'auto' }}>
           {isPaid ? (
-            /* ĐÃ THANH TOÁN (PAID) VIEW */
+            /* PAID VIEW */
             <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
               <div style={{
                 width: '72px',
@@ -163,11 +163,11 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
               </div>
 
               <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>
-                Khoản phạt đã thanh toán thành công
+                Fine Paid Successfully
               </h2>
 
               <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.6, margin: '0 auto 1.5rem auto', maxWidth: '460px' }}>
-                Khoản phạt cho sách <strong>"{fine.bookTitle}"</strong> đã được thanh toán và đối soát hoàn tất.
+                The fine for book <strong>"{fine.bookTitle}"</strong> has been paid and verified.
               </p>
 
               <div style={{
@@ -185,24 +185,24 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                 gap: '0.75rem'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Mã phiếu mượn:</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Loan ID:</span>
                   <strong style={{ color: 'var(--text-primary)' }}>#{fine.bookLoanId}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Số ngày trễ hạn:</span>
-                  <strong style={{ color: 'var(--text-primary)' }}>{fine.overdueDays} ngày</strong>
+                  <span style={{ color: 'var(--text-muted)' }}>Overdue Days:</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{fine.overdueDays} days</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Số tiền đã nộp:</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Amount Paid:</span>
                   <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(fine.fineAmount)}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Ngày ghi nhận:</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Date Recorded:</span>
                   <span style={{ color: 'var(--text-primary)' }}>{formatDate(fine.createdAt)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Trạng thái:</span>
-                  <span style={{ color: '#10b981', fontWeight: 700 }}>Đã thanh toán</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Status:</span>
+                  <span style={{ color: '#10b981', fontWeight: 700 }}>Paid</span>
                 </div>
               </div>
 
@@ -211,11 +211,11 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                 className="fx-btn-borrow-off"
                 style={{ width: '100%', padding: '0.75rem' }}
               >
-                Đóng
+                Close
               </button>
             </div>
           ) : (submitted || isPending) ? (
-            /* ĐANG CHỜ DUYỆT (PENDING) VIEW */
+            /* PENDING VIEW */
             <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
               <div style={{
                 width: '72px',
@@ -233,12 +233,12 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
               </div>
 
               <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>
-                {submitted ? 'Đã gửi yêu cầu nộp phạt thành công!' : 'Yêu cầu nộp phạt đang chờ duyệt'}
+                {submitted ? 'Fine Payment Request Submitted!' : 'Payment Pending Approval'}
               </h2>
 
               <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.6, margin: '0 auto 1.5rem auto', maxWidth: '460px' }}>
-                Khoản phạt cho sách <strong>"{fine.bookTitle}"</strong> đang ở trạng thái <span style={{ color: '#f59e0b', fontWeight: 600 }}>Đang chờ duyệt</span>.
-                Thủ thư sẽ kiểm tra số dư tài khoản và xác nhận trong thời gian sớm nhất.
+                The fine payment request for book <strong>"{fine.bookTitle}"</strong> is <span style={{ color: '#f59e0b', fontWeight: 600 }}>Pending Approval</span>.
+                The librarian will verify the account balance and confirm shortly.
               </p>
 
               <div style={{
@@ -255,16 +255,16 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                 textAlign: 'center'
               }}>
                 <div style={{ borderRight: '1px solid var(--border-color)', paddingRight: '0.5rem' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Mã phiếu mượn</span>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Loan ID</span>
                   <strong style={{ color: 'var(--text-primary)', fontSize: '1.05rem', fontFamily: 'monospace' }}>#{fine.bookLoanId}</strong>
                 </div>
                 <div style={{ borderRight: '1px solid var(--border-color)', paddingRight: '0.5rem' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Số tiền phạt</span>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Fine Amount</span>
                   <strong style={{ color: 'var(--text-primary)', fontSize: '1.05rem' }}>{formatCurrency(fine.fineAmount)}</strong>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Trạng thái</span>
-                  <strong style={{ color: '#d97706', fontSize: '0.95rem' }}>Đang chờ duyệt</strong>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Status</span>
+                  <strong style={{ color: '#d97706', fontSize: '0.95rem' }}>Pending Approval</strong>
                 </div>
               </div>
 
@@ -273,11 +273,11 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                 className="fx-btn-borrow-off"
                 style={{ width: '100%', padding: '0.75rem' }}
               >
-                Đóng
+                Close
               </button>
             </div>
           ) : (
-            /* CHƯA THANH TOÁN (UNPAID) QR VIEW */
+            /* UNPAID QR VIEW */
             <div>
               {errorMsg && (
                 <div style={{
@@ -306,14 +306,14 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                 marginBottom: '1.25rem'
               }}>
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Sách quá hạn</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Overdue Book</span>
                   <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{fine.bookTitle}</strong>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
-                    Trễ {fine.overdueDays} ngày (Phiếu mượn #{fine.bookLoanId})
+                    Overdue by {fine.overdueDays} days (Loan #{fine.bookLoanId})
                   </span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Số tiền phạt</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Fine Amount</span>
                   <strong style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{formatCurrency(fine.fineAmount)}</strong>
                 </div>
               </div>
@@ -359,12 +359,12 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                 marginBottom: '1.25rem'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Ngân hàng:</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Bank:</span>
                   <strong style={{ color: 'var(--text-primary)' }}>{bankName}</strong>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Số tài khoản:</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Account Number:</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <strong style={{ color: 'var(--text-primary)', fontFamily: 'monospace', fontSize: '1rem' }}>{accountNumber}</strong>
                     {renderCopyButton(accountNumber, 'acc')}
@@ -372,12 +372,12 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Chủ tài khoản:</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Account Holder:</span>
                   <strong style={{ color: 'var(--text-primary)' }}>{accountHolder}</strong>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Số tiền:</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Amount:</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(fine.fineAmount)}</strong>
                     {renderCopyButton(String(Math.round(fine.fineAmount || 0)), 'amount')}
@@ -385,7 +385,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Nội dung chuyển khoản:</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Transfer Reference:</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <strong style={{ color: 'var(--text-primary)', fontFamily: 'monospace', fontSize: '0.95rem' }}>
                       {transferContent}
@@ -403,7 +403,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                   style={{ padding: '0.65rem 1.25rem' }}
                   disabled={isSubmitting}
                 >
-                  Đóng
+                  Close
                 </button>
                 <button
                   onClick={handleSubmitPayment}
@@ -412,7 +412,7 @@ const VietQRModal = ({ show, fine, onClose, onSuccess }) => {
                   disabled={isSubmitting}
                 >
                   <span>{isSubmitting ? '⏳' : '✓'}</span>
-                  {isSubmitting ? 'Đang gửi...' : 'Tôi đã chuyển khoản'}
+                  {isSubmitting ? 'Submitting...' : 'I Have Transferred'}
                 </button>
               </div>
             </div>

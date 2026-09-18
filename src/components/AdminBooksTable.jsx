@@ -57,15 +57,17 @@ const AdminBooksTable = ({
                         alt={book.title}
                         className="admin-table-thumb"
                         onError={(e) => { 
-                          e.target.onerror = null; // Prevent infinite loop if fallback image also fails
-                          e.target.src = 'https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api'; 
+                          e.target.onerror = null; 
+                          e.target.style.display = 'none'; 
+                          if (e.target.nextSibling) {
+                            e.target.nextSibling.style.display = 'flex';
+                          }
                         }}
                       />
-                    ) : (
-                      <div className="admin-table-placeholder-thumb">
-                        <span style={{ fontSize: '0.6rem' }}>No Img</span>
-                      </div>
-                    )}
+                    ) : null}
+                    <div className="admin-table-placeholder-thumb" style={{ display: book.thumbnail ? 'none' : 'flex' }}>
+                      <span style={{ fontSize: '0.6rem' }}>No Img</span>
+                    </div>
                   </td>
                   <td style={{ fontWeight: '500', minWidth: '150px' }}>{book.title}</td>
                   <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={book.description}>

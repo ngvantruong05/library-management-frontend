@@ -17,7 +17,7 @@ export const triggerGoogleLogin = ({ onSuccess, onError }) => {
   ensureGoogleScriptLoaded()
 
   if (!window.google?.accounts?.oauth2) {
-    onError('Đang tải dịch vụ Google... Vui lòng thử lại sau giây lát.')
+    onError('Google Login service is still loading, please try again in a moment.')
     return
   }
 
@@ -39,21 +39,22 @@ export const triggerGoogleLogin = ({ onSuccess, onError }) => {
             })
           } catch (err) {
             console.error('Failed to fetch profile from Google:', err)
-            onError('Không thể lấy thông tin tài khoản từ Google')
+            onError('Failed to fetch user info from Google.')
           }
         } else if (tokenResponse.error) {
-          onError('Đăng nhập Google không thành công hoặc bị hủy')
+          onError('Google Login failed or was canceled.')
         }
       },
       error_callback: (err) => {
         console.error('GIS Error Callback:', err)
-        onError('Lỗi kết nối Google OAuth. Vui lòng kiểm tra lại cấu hình Client ID.')
+        onError('Google client authentication error.')
       },
     })
 
     client.requestAccessToken({ prompt: 'select_account' })
   } catch (err) {
     console.error('Google OAuth init error:', err)
-    onError('Không thể khởi tạo dịch vụ Google OAuth')
+    onError('Google Login failed or was canceled.')
   }
 }
+

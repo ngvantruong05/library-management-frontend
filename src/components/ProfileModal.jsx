@@ -85,7 +85,7 @@ const ProfileModal = ({ show, onClose }) => {
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      showToast('Vui lòng chọn một tệp hình ảnh (.png, .jpg, .jpeg)', 'error')
+      showToast('Please select an image file (.png, .jpg, .jpeg)', 'error')
       return
     }
 
@@ -125,18 +125,18 @@ const ProfileModal = ({ show, onClose }) => {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
 
-  // Save changes handler (JavaFX handleSaveChanges)
+  // Save changes handler
   const handleSaveChanges = async (e) => {
     e.preventDefault()
     if (!hasChanges) return
 
     if (!displayName.trim()) {
-      showToast('Tên hiển thị không được để trống.', 'error')
+      showToast('Display name cannot be empty.', 'error')
       return
     }
 
     if (phoneNumber && !/^[0-9+()#.\s-]{8,20}$/.test(phoneNumber)) {
-      showToast('Số điện thoại không hợp lệ.', 'error')
+      showToast('Invalid phone number format.', 'error')
       return
     }
 
@@ -155,12 +155,12 @@ const ProfileModal = ({ show, onClose }) => {
       })
       
       setUser(response.data)
-      showToast('Cập nhật thông tin thành công!', 'success')
+      showToast('Profile updated successfully!', 'success')
     } catch (err) {
       if (axios.isCancel(err)) {
-        showToast('Đã hủy cập nhật thông tin.', 'error')
+        showToast('Profile update cancelled.', 'error')
       } else {
-        const errorMsg = err.response?.data?.message || 'Đã xảy ra lỗi khi cập nhật thông tin.'
+        const errorMsg = err.response?.data?.message || 'An error occurred while updating profile.'
         showToast(errorMsg, 'error')
       }
     } finally {
@@ -168,13 +168,13 @@ const ProfileModal = ({ show, onClose }) => {
     }
   }
 
-  // Update password handler (JavaFX handleUpdatePassword)
+  // Update password handler
   const handleUpdatePassword = async (e) => {
     e.preventDefault()
     if (!oldPassword || !newPassword) return
 
     if (newPassword.length < 6) {
-      showToast('Mật khẩu mới phải có ít nhất 6 ký tự.', 'error')
+      showToast('New password must be at least 6 characters long.', 'error')
       return
     }
 
@@ -192,12 +192,12 @@ const ProfileModal = ({ show, onClose }) => {
       
       setOldPassword('')
       setNewPassword('')
-      showToast('Cập nhật mật khẩu thành công!', 'success')
+      showToast('Password changed successfully!', 'success')
     } catch (err) {
       if (axios.isCancel(err)) {
-        showToast('Đã hủy cập nhật mật khẩu.', 'error')
+        showToast('Password update cancelled.', 'error')
       } else {
-        const errorMsg = err.response?.data?.message || 'Mật khẩu cũ không chính xác.'
+        const errorMsg = err.response?.data?.message || 'Incorrect old password.'
         showToast(errorMsg, 'error')
       }
     } finally {
@@ -205,7 +205,7 @@ const ProfileModal = ({ show, onClose }) => {
     }
   }
 
-  // Cancel running API request (JavaFX cancelButton onAction)
+  // Cancel running API request
   const handleCancelLoading = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -216,7 +216,7 @@ const ProfileModal = ({ show, onClose }) => {
   return (
     <div className="profile-modal-overlay" onClick={onClose}>
       <div className="profile-modal-container" onClick={(e) => e.stopPropagation()}>
-        {/* Loading Overlay (StackPane emulation) */}
+        {/* Loading Overlay */}
         {isLoading && (
           <div className="fx-loading-overlay">
             <div className="fx-loading-inner">
@@ -230,7 +230,7 @@ const ProfileModal = ({ show, onClose }) => {
         )}
 
         <div className="profile-modal-header">
-          <h2 className="profile-modal-title">Hồ sơ cá nhân</h2>
+          <h2 className="profile-modal-title">User Profile</h2>
           <button className="profile-modal-close" onClick={onClose} aria-label="Close modal">
             &times;
           </button>
@@ -243,13 +243,13 @@ const ProfileModal = ({ show, onClose }) => {
               className={`fx-tab-btn ${activeTab === 'personal' ? 'active' : ''}`}
               onClick={() => setActiveTab('personal')}
             >
-              Thông tin cá nhân
+              Personal Info
             </button>
             <button
               className={`fx-tab-btn ${activeTab === 'security' ? 'active' : ''}`}
               onClick={() => setActiveTab('security')}
             >
-              Cài đặt bảo mật
+              Security Settings
             </button>
           </div>
 
@@ -284,7 +284,7 @@ const ProfileModal = ({ show, onClose }) => {
                           {getInitials()}
                         </div>
                       )}
-                      <span className="change-avatar-label">Thay đổi</span>
+                      <span className="change-avatar-label">Change</span>
                     </div>
                     
                     {/* Hidden File Input */}
@@ -309,7 +309,7 @@ const ProfileModal = ({ show, onClose }) => {
                 {/* Right Column - Inputs for name, phone, bday */}
                 <form className="profile-right-panel" onSubmit={handleSaveChanges}>
                   <div className="profile-form-group">
-                    <label className="profile-label">Tên hiển thị:</label>
+                    <label className="profile-label">Display Name:</label>
                     <input
                       type="text"
                       className="profile-input"
@@ -320,7 +320,7 @@ const ProfileModal = ({ show, onClose }) => {
                   </div>
 
                   <div className="profile-form-group">
-                    <label className="profile-label">Số điện thoại:</label>
+                    <label className="profile-label">Phone Number:</label>
                     <input
                       type="tel"
                       className="profile-input"
@@ -331,7 +331,7 @@ const ProfileModal = ({ show, onClose }) => {
                   </div>
 
                   <div className="profile-form-group">
-                    <label className="profile-label">Ngày sinh:</label>
+                    <label className="profile-label">Date of Birth:</label>
                     <input
                       type="date"
                       className="profile-input"
@@ -346,7 +346,7 @@ const ProfileModal = ({ show, onClose }) => {
                     className="profile-btn profile-btn-primary"
                     disabled={!hasChanges}
                   >
-                    Lưu thay đổi
+                    Save Changes
                   </button>
                 </form>
               </div>
@@ -357,22 +357,22 @@ const ProfileModal = ({ show, onClose }) => {
               <div className="profile-security-container">
                 <form className="profile-security-box" onSubmit={handleUpdatePassword}>
                   <div className="profile-form-group">
-                    <label className="profile-label">Mật khẩu cũ:</label>
+                    <label className="profile-label">Current Password:</label>
                     <input
                       type="password"
                       className="profile-input"
-                      placeholder="Nhập mật khẩu cũ"
+                      placeholder="Enter current password"
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
                     />
                   </div>
 
                   <div className="profile-form-group">
-                    <label className="profile-label">Mật khẩu mới:</label>
+                    <label className="profile-label">New Password:</label>
                     <input
                       type="password"
                       className="profile-input"
-                      placeholder="Nhập mật khẩu mới"
+                      placeholder="Enter new password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                     />
@@ -383,7 +383,7 @@ const ProfileModal = ({ show, onClose }) => {
                     className="profile-btn profile-btn-primary"
                     disabled={!oldPassword || !newPassword}
                   >
-                    Cập nhật mật khẩu
+                    Update Password
                   </button>
                 </form>
               </div>

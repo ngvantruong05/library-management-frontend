@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import StarRating from './StarRating'
 
 const BookCard = ({ book, onClick, showRating = false }) => {
+  const [imgError, setImgError] = useState(false)
   const rating = book.averageRating !== undefined && book.averageRating !== null 
     ? book.averageRating 
     : (book.rating !== undefined ? book.rating : 0)
@@ -10,8 +11,13 @@ const BookCard = ({ book, onClick, showRating = false }) => {
   return (
     <div className="fx-book-card" onClick={() => onClick && onClick(book)}>
       <div className="fx-book-card-thumbnail">
-        {book.thumbnail ? (
-          <img src={book.thumbnail} alt={book.title} className="fx-book-img" />
+        {book.thumbnail && !imgError ? (
+          <img 
+            src={book.thumbnail} 
+            alt={book.title} 
+            className="fx-book-img" 
+            onError={() => setImgError(true)}
+          />
         ) : (
           <div className="fx-book-placeholder">
             <svg

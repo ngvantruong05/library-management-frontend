@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true, role }
     } catch (error) {
       console.error('Login failed:', error)
-      const message = error.response?.data?.message || 'Tài khoản hoặc mật khẩu không đúng'
+      const message = error.response?.data?.message || 'Invalid email or password'
       return { success: false, error: message }
     }
   }
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true, role }
     } catch (error) {
       console.error('Registration failed:', error)
-      const message = error.response?.data?.message || 'Đăng ký không thành công'
+      const message = error.response?.data?.message || 'Registration failed'
       return { success: false, error: message }
     }
   }
@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true, role }
     } catch (error) {
       console.error('Google Login failed:', error)
-      const message = error.response?.data?.message || 'Đăng nhập bằng Google thất bại'
+      const message = error.response?.data?.message || 'Google login failed'
       return { success: false, error: message }
     }
   }

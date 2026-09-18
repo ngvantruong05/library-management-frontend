@@ -131,11 +131,11 @@ const NotificationBell = () => {
   const getTypeBadge = (type) => {
     switch (type) {
       case 'OVERDUE':
-        return { icon: '🚨', label: 'Quá hạn', bg: '#fee2e2', color: '#991b1b' }
+        return { icon: '🚨', label: 'Overdue', bg: '#fee2e2', color: '#991b1b' }
       case 'DUE_SOON':
-        return { icon: '⚠️', label: 'Sắp đến hạn', bg: '#fef3c7', color: '#92400e' }
+        return { icon: '⚠️', label: 'Due Soon', bg: '#fef3c7', color: '#92400e' }
       default:
-        return { icon: 'ℹ️', label: 'Hệ thống', bg: '#e0f2fe', color: '#075985' }
+        return { icon: 'ℹ️', label: 'System', bg: '#e0f2fe', color: '#075985' }
     }
   }
 
@@ -146,7 +146,7 @@ const NotificationBell = () => {
       <button
         className="fx-bell-btn"
         onClick={handleToggle}
-        title="Thông báo"
+        title="Notifications"
         style={{
           background: 'transparent',
           border: 'none',
@@ -207,7 +207,7 @@ const NotificationBell = () => {
             border: '1px solid var(--color-border, #e5e7eb)'
           }}
         >
-          {/* Header - Only shows "Thông báo" title without unread text */}
+          {/* Header */}
           <div
             style={{
               padding: '0.75rem 1rem',
@@ -219,12 +219,12 @@ const NotificationBell = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Thông báo</span>
+              <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Notifications</span>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <button
                 onClick={handleManualScan}
-                title="Quét thông báo ngay"
+                title="Scan notifications now"
                 style={{
                   background: 'none',
                   border: 'none',
@@ -235,7 +235,7 @@ const NotificationBell = () => {
                   borderRadius: '4px'
                 }}
               >
-                🔄 Quét
+                🔄 Scan
               </button>
               {unreadCount > 0 && (
                 <button
@@ -249,7 +249,7 @@ const NotificationBell = () => {
                     textDecoration: 'underline'
                   }}
                 >
-                  Đọc tất cả
+                  Mark all as read
                 </button>
               )}
             </div>
@@ -259,11 +259,11 @@ const NotificationBell = () => {
           <div style={{ overflowY: 'auto', flex: 1, maxHeight: '380px' }}>
             {loading ? (
               <div style={{ padding: '1.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.85rem' }}>
-                Đang tải thông báo...
+                Loading notifications...
               </div>
             ) : sortedNotifications.length === 0 ? (
               <div style={{ padding: '2rem 1rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem' }}>
-                🔕 Không có thông báo nào
+                🔕 No notifications
               </div>
             ) : (
               sortedNotifications.map((item) => {

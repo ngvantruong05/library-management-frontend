@@ -12,6 +12,7 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
   const [availableCopies, setAvailableCopies] = useState(book?.availableCopies ?? 5)
   const [showBorrowModal, setShowBorrowModal] = useState(false)
   const [borrowModalType, setBorrowModalType] = useState('OFFLINE')
+  const [detailImgError, setDetailImgError] = useState(false)
   
   // Rating states
   const [ratingSummary, setRatingSummary] = useState({
@@ -304,8 +305,13 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
             <div className="fx-detail-columns">
               {/* Left Column: Cover */}
               <div className="fx-detail-left">
-                {book.thumbnail ? (
-                  <img src={book.thumbnail} alt={book.title} className="fx-detail-img" />
+                {book.thumbnail && !detailImgError ? (
+                  <img 
+                    src={book.thumbnail} 
+                    alt={book.title} 
+                    className="fx-detail-img" 
+                    onError={() => setDetailImgError(true)}
+                  />
                 ) : (
                   <div className="fx-detail-placeholder">
                     <svg
