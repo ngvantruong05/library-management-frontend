@@ -242,7 +242,6 @@ const Categories = () => {
 
   // Handle borrow success notification
   const handleBorrowSubmit = (book, type, numCopies) => {
-    showToast(`Successfully borrowed "${book.title}" (${type}${type === 'OFFLINE' ? ` - ${numCopies || 1} copies` : ''})!`)
     setShowDetailModal(false)
   }
 

@@ -44,13 +44,13 @@ const AdminDashboard = () => {
   // Calculate real borrowing trends from loans data
   const calculateTrends = (loansList) => {
     const dayLabels = [
-      { key: 1, label: 'T2', full: 'Thứ Hai' },
-      { key: 2, label: 'T3', full: 'Thứ Ba' },
-      { key: 3, label: 'T4', full: 'Thứ Tư' },
-      { key: 4, label: 'T5', full: 'Thứ Năm' },
-      { key: 5, label: 'T6', full: 'Thứ Sáu' },
-      { key: 6, label: 'T7', full: 'Thứ Bảy' },
-      { key: 0, label: 'CN', full: 'Chủ Nhật' }
+      { key: 1, label: 'Mon', full: 'Monday' },
+      { key: 2, label: 'Tue', full: 'Tuesday' },
+      { key: 3, label: 'Wed', full: 'Wednesday' },
+      { key: 4, label: 'Thu', full: 'Thursday' },
+      { key: 5, label: 'Fri', full: 'Friday' },
+      { key: 6, label: 'Sat', full: 'Saturday' },
+      { key: 0, label: 'Sun', full: 'Sunday' }
     ]
 
     const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 }
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
       const count = counts[key] || 0
       if (count > peakCount) {
         peakCount = count
-        peakDay = `${full} (${count} lượt)`
+        peakDay = `${full} (${count} loans)`
       }
       // If 0 loans, flat 3px line. If >0 loans, proportionally scaled height
       const height = (count > 0 && maxVal > 0)
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
       return { label, full, count, height, hasData: count > 0 }
     })
 
-    if (peakCount === 0) peakDay = 'Chưa có'
+    if (peakCount === 0) peakDay = 'None'
     const avgPerDay = total > 0 ? (total / 7).toFixed(1) : '0'
 
     return {
@@ -238,7 +238,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 Hồ sơ cá nhân & Avatar
+                    👤 My Profile
                   </Link>
 
                   <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
@@ -258,7 +258,7 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      {/* Main Admin Sidebar & Content Layout - 100% Synchronized */}
+      {/* Main Admin Sidebar & Content Layout */}
       <div className="db-admin-layout">
         {/* Left Toolbar/Sidebar */}
         <aside className="db-sidebar">
@@ -317,13 +317,13 @@ const AdminDashboard = () => {
             Categories
           </button>
 
-          <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+          <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
             <button className="db-sidebar-btn" onClick={() => navigate('/profile')}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
-              Hồ sơ cá nhân
+              My Profile
             </button>
           </div>
         </aside>
@@ -335,15 +335,15 @@ const AdminDashboard = () => {
             <div>
               <h1 className="db-section-title">Dashboard Overview</h1>
               <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                Chào mừng trở lại, {user?.displayName || 'Administrator'}. Dưới đây là tổng quan thư viện.
+                Welcome back, {user?.displayName || 'Administrator'}. Here is your library system overview.
               </span>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button className="admin-btn-default" onClick={fetchStats} disabled={isLoading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                🔄 Làm mới
+                🔄 Refresh
               </button>
               <button className="catalog-btn-primary" onClick={() => navigate('/admin/loans')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                ➕ Mượn sách trực tiếp
+                ➕ Create Loan
               </button>
             </div>
           </div>
@@ -428,8 +428,8 @@ const AdminDashboard = () => {
             <div className="db-panel-card">
               <div className="db-chart-header">
                 <div>
-                  <h2 className="db-chart-title">Xu hướng mượn sách</h2>
-                  <div className="db-chart-subtitle">Lưu lượng mượn sách 30 ngày gần đây</div>
+                  <h2 className="db-chart-title">Borrowing Trends</h2>
+                  <div className="db-chart-subtitle">Loan volume over the past 30 days</div>
                 </div>
               </div>
 
@@ -457,7 +457,7 @@ const AdminDashboard = () => {
                         className="db-chart-tooltip notranslate"
                         translate="no"
                       >
-                        <span className="notranslate" translate="no">{bar.count}</span> lượt mượn
+                        <span className="notranslate" translate="no">{bar.count}</span> loans
                       </div>
                     </div>
                     <span className="db-chart-label notranslate" translate="no">{bar.label}</span>
@@ -468,33 +468,33 @@ const AdminDashboard = () => {
               {/* 3-Metric Summary Grid to match height with Recent Activity */}
               <div className="db-chart-summary-grid">
                 <div className="db-chart-summary-item">
-                  <span className="db-chart-summary-label">Tổng lượt mượn</span>
-                  <span className="db-chart-summary-value notranslate" translate="no">{trendData.summary.total} lượt</span>
+                  <span className="db-chart-summary-label">Total Loans</span>
+                  <span className="db-chart-summary-value notranslate" translate="no">{trendData.summary.total}</span>
                 </div>
                 <div className="db-chart-summary-item">
-                  <span className="db-chart-summary-label">Ngày cao điểm</span>
+                  <span className="db-chart-summary-label">Peak Day</span>
                   <span className="db-chart-summary-value notranslate" translate="no" style={{ fontSize: '0.92rem' }}>{trendData.summary.peakDay}</span>
                 </div>
                 <div className="db-chart-summary-item">
-                  <span className="db-chart-summary-label">Trung bình ngày</span>
-                  <span className="db-chart-summary-value notranslate" translate="no">{trendData.summary.avgPerDay} lượt</span>
+                  <span className="db-chart-summary-label">Daily Average</span>
+                  <span className="db-chart-summary-value notranslate" translate="no">{trendData.summary.avgPerDay}</span>
                 </div>
               </div>
 
               <div className="db-chart-footer-note notranslate" translate="no">
                 <span>📊</span>
                 <span>
-                  Dữ liệu đồng bộ trực tiếp từ hệ thống ({trendData.summary.total} phiếu mượn).
+                  Synchronized system data ({trendData.summary.total} total loans).
                 </span>
               </div>
             </div>
 
-            {/* Recent Activity Feed (Connected to real stats.recentLoans data) */}
+            {/* Recent Activity Feed */}
             <div className="db-panel-card">
               <div className="db-chart-header" style={{ marginBottom: '1rem' }}>
                 <div>
-                  <h2 className="db-chart-title">Hoạt động gần đây</h2>
-                  <div className="db-chart-subtitle">Hoạt động mượn trả từ hệ thống thực tế</div>
+                  <h2 className="db-chart-title">Recent Activity</h2>
+                  <div className="db-chart-subtitle">Real-time system loan and return activity</div>
                 </div>
               </div>
 
@@ -510,19 +510,19 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                         <div className="db-activity-text">
-                          Độc giả <strong>{loan.userDisplayName || loan.userEmail}</strong>{' '}
-                          {loan.status === 'RETURNED' ? 'đã trả sách' : loan.status === 'OVERDUE' ? 'quá hạn trả sách' : 'đã mượn sách'}{' '}
+                          Member <strong>{loan.userDisplayName || loan.userEmail}</strong>{' '}
+                          {loan.status === 'RETURNED' ? 'returned' : loan.status === 'OVERDUE' ? 'overdue on' : 'borrowed'}{' '}
                           <strong>"{loan.bookTitle}"</strong>.
                         </div>
                         <div className="db-activity-time">
-                          {formatDate(loan.borrowDate)} {loan.type === 'ONLINE' ? '• E-Book' : '• Tại quầy'}
+                          {formatDate(loan.borrowDate)} {loan.type === 'ONLINE' ? '• E-Book' : '• In-Person'}
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '1.5rem 0', textAlign: 'center' }}>
-                    Chưa có hoạt động mượn trả nào được ghi nhận gần đây.
+                    No recent borrowing activity recorded.
                   </div>
                 )}
               </div>
@@ -532,7 +532,7 @@ const AdminDashboard = () => {
                 onClick={() => navigate('/admin/loans')}
                 style={{ width: '100%', marginTop: '1rem', fontSize: '0.85rem' }}
               >
-                Xem tất cả phiếu mượn ➔
+                View All Loans ➔
               </button>
             </div>
           </div>
@@ -546,12 +546,18 @@ const AdminDashboard = () => {
                 {stats && stats.topLentBooks && stats.topLentBooks.length > 0 ? (
                   stats.topLentBooks.map((item) => (
                     <div key={`top-${item.bookId}`} className="db-list-item">
-                      <img
-                        className="db-list-img"
-                        src={item.bookThumbnail || 'https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api'}
-                        alt={item.bookTitle}
-                        onError={(e) => { e.target.src = 'https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api' }}
-                      />
+                      {item.bookThumbnail ? (
+                        <img
+                          className="db-list-img"
+                          src={item.bookThumbnail}
+                          alt={item.bookTitle}
+                          onError={(e) => { e.target.style.visibility = 'hidden'; }}
+                        />
+                      ) : (
+                        <div className="db-list-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-muted, #f1f5f9)', color: 'var(--text-muted, #94a3b8)', fontSize: '0.65rem' }}>
+                          No Cover
+                        </div>
+                      )}
                       <div className="db-list-info">
                         <span className="db-list-title" onClick={() => navigate(`/books?q=${encodeURIComponent(item.bookTitle)}`)}>
                           {item.bookTitle}
@@ -576,12 +582,18 @@ const AdminDashboard = () => {
                 {stats && stats.recentLoans && stats.recentLoans.length > 0 ? (
                   stats.recentLoans.map((item) => (
                     <div key={`recent-${item.id}`} className="db-list-item">
-                      <img
-                        className="db-list-img"
-                        src={item.bookThumbnail || 'https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api'}
-                        alt={item.bookTitle}
-                        onError={(e) => { e.target.src = 'https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api' }}
-                      />
+                      {item.bookThumbnail ? (
+                        <img
+                          className="db-list-img"
+                          src={item.bookThumbnail}
+                          alt={item.bookTitle}
+                          onError={(e) => { e.target.style.visibility = 'hidden'; }}
+                        />
+                      ) : (
+                        <div className="db-list-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-muted, #f1f5f9)', color: 'var(--text-muted, #94a3b8)', fontSize: '0.65rem' }}>
+                          No Cover
+                        </div>
+                      )}
                       <div className="db-list-info">
                         <span className="db-list-title" onClick={() => navigate(`/books?q=${encodeURIComponent(item.bookTitle)}`)}>
                           {item.bookTitle}

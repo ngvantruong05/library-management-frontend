@@ -22,15 +22,15 @@ const Login = () => {
   const validateForm = () => {
     const errors = {}
     if (!email.trim()) {
-      errors.email = 'Vui lòng nhập địa chỉ Email'
+      errors.email = 'Please enter your email address'
     } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
-      errors.email = 'Địa chỉ Email không hợp lệ'
+      errors.email = 'Please enter a valid email address'
     }
 
     if (!password) {
-      errors.password = 'Vui lòng nhập mật khẩu'
+      errors.password = 'Please enter your password'
     } else if (password.length < 6) {
-      errors.password = 'Mật khẩu phải chứa ít nhất 6 ký tự'
+      errors.password = 'Password must be at least 6 characters'
     }
 
     setFormErrors(errors)
@@ -61,7 +61,7 @@ const Login = () => {
           navigate('/dashboard')
         }
       } else {
-        setErrorMsg(result.error || 'Tài khoản hoặc mật khẩu không đúng')
+        setErrorMsg(result.error || 'Invalid email or password')
       }
     } finally {
       setIsSubmitting(false)
@@ -82,7 +82,7 @@ const Login = () => {
               navigate('/dashboard')
             }
           } else {
-            setErrorMsg(result.error || 'Đăng nhập bằng Google thất bại')
+            setErrorMsg(result.error || 'Google login failed')
           }
         } finally {
           setIsSubmitting(false)
@@ -103,14 +103,14 @@ const Login = () => {
 
       <div className="auth-card">
         <div className="auth-header">
-          <h2 className="auth-title">Chào mừng trở lại</h2>
-          <p className="auth-subtitle">Đăng nhập để quản lý và mượn sách thư viện</p>
+          <h2 className="auth-title">Welcome Back</h2>
+          <p className="auth-subtitle">Sign in to access your library account</p>
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="auth-form-group">
             <label className="auth-label" htmlFor="email">
-              ĐỊA CHỈ EMAIL
+              EMAIL ADDRESS
             </label>
             <div className="auth-input-container">
               <input
@@ -130,14 +130,14 @@ const Login = () => {
 
           <div className="auth-form-group">
             <label className="auth-label" htmlFor="password">
-              MẬT KHẨU
+              PASSWORD
             </label>
             <div className="auth-input-container">
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 className={`auth-input ${formErrors.password || errorMsg ? 'auth-input-error' : ''}`}
-                placeholder="Nhập mật khẩu của bạn"
+                placeholder="Enter your password"
                 value={password}
                 onChange={handleInputChange(setPassword, 'password')}
                 disabled={isSubmitting}
@@ -148,7 +148,7 @@ const Login = () => {
                 className="auth-toggle-pwd"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isSubmitting}
-                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
                   <svg
@@ -189,12 +189,12 @@ const Login = () => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang đăng nhập...' : 'Đăng Nhập'}
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <div className="auth-divider">
-          <span>HOẶC</span>
+          <span>OR</span>
         </div>
 
         <button
@@ -221,13 +221,13 @@ const Login = () => {
               d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"
             />
           </svg>
-          <span>Tiếp tục với Google</span>
+          <span>Continue with Google</span>
         </button>
 
         <div className="auth-footer">
-          Chưa có tài khoản?{' '}
+          Don't have an account?{' '}
           <Link to="/register" className="auth-link">
-            Đăng ký ngay
+            Register now
           </Link>
         </div>
       </div>

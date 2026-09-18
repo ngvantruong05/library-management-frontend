@@ -350,7 +350,7 @@ const AdminUsers = () => {
                   </div>
 
                   <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 Hồ sơ cá nhân & Avatar
+                    👤 My Profile
                   </Link>
 
                   <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
@@ -428,6 +428,16 @@ const AdminUsers = () => {
             </svg>
             Categories
           </button>
+
+          <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+            <button className="db-sidebar-btn" onClick={() => navigate('/profile')}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              My Profile
+            </button>
+          </div>
         </aside>
 
         {/* Content Area */}

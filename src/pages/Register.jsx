@@ -42,27 +42,27 @@ const Register = () => {
     const errors = {}
 
     if (!formData.displayName.trim()) {
-      errors.displayName = 'Vui lòng nhập họ và tên'
+      errors.displayName = 'Please enter your full name'
     }
 
     if (!formData.email) {
-      errors.email = 'Vui lòng nhập địa chỉ Email'
+      errors.email = 'Please enter your email address'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Địa chỉ Email không hợp lệ'
+      errors.email = 'Please enter a valid email address'
     }
 
     if (!formData.password) {
-      errors.password = 'Vui lòng nhập mật khẩu'
+      errors.password = 'Please enter a password'
     } else if (formData.password.length < 6) {
-      errors.password = 'Mật khẩu phải chứa ít nhất 6 ký tự'
+      errors.password = 'Password must be at least 6 characters'
     }
 
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Mật khẩu xác nhận không khớp'
+      errors.confirmPassword = 'Passwords do not match'
     }
 
     if (formData.phoneNumber && !/^[0-9+()#.\s-]{8,20}$/.test(formData.phoneNumber)) {
-      errors.phoneNumber = 'Số điện thoại không hợp lệ'
+      errors.phoneNumber = 'Please enter a valid phone number'
     }
 
     setFormErrors(errors)
@@ -87,7 +87,7 @@ const Register = () => {
           navigate('/dashboard')
         }
       } else {
-        setErrorMsg(result.error || 'Đăng ký không thành công')
+        setErrorMsg(result.error || 'Registration failed')
       }
     } finally {
       setIsSubmitting(false)
@@ -108,7 +108,7 @@ const Register = () => {
               navigate('/dashboard')
             }
           } else {
-            setErrorMsg(result.error || 'Đăng ký bằng Google thất bại')
+            setErrorMsg(result.error || 'Google registration failed')
           }
         } finally {
           setIsSubmitting(false)
@@ -129,8 +129,8 @@ const Register = () => {
 
       <div className="auth-card" style={{ maxWidth: '500px', padding: '2.5rem 2rem' }}>
         <div className="auth-header">
-          <h2 className="auth-title">Tạo Tài Khoản</h2>
-          <p className="auth-subtitle">Đăng ký thành viên Hệ thống Thư viện</p>
+          <h2 className="auth-title">Create Account</h2>
+          <p className="auth-subtitle">Join Lexicon LMS Library Management System</p>
         </div>
 
         {errorMsg && (
@@ -156,13 +156,13 @@ const Register = () => {
         <form onSubmit={handleSubmit} noValidate>
           <div className="auth-form-group">
             <label className="auth-label" htmlFor="displayName">
-              HỌ VÀ TÊN *
+              FULL NAME *
             </label>
             <input
               id="displayName"
               type="text"
               className={`auth-input ${formErrors.displayName ? 'auth-input-error' : ''}`}
-              placeholder="Nguyễn Văn A"
+              placeholder="John Doe"
               value={formData.displayName}
               onChange={handleChange}
               disabled={isSubmitting}
@@ -174,7 +174,7 @@ const Register = () => {
 
           <div className="auth-form-group">
             <label className="auth-label" htmlFor="email">
-              ĐỊA CHỈ EMAIL *
+              EMAIL ADDRESS *
             </label>
             <input
               id="email"
@@ -193,13 +193,13 @@ const Register = () => {
           <div className="auth-form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label className="auth-label" htmlFor="phoneNumber">
-                SỐ ĐIỆN THOẠI
+                PHONE NUMBER
               </label>
               <input
                 id="phoneNumber"
                 type="tel"
                 className={`auth-input ${formErrors.phoneNumber ? 'auth-input-error' : ''}`}
-                placeholder="0912345678"
+                placeholder="+84 123 456 789"
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 disabled={isSubmitting}
@@ -210,7 +210,7 @@ const Register = () => {
             </div>
             <div>
               <label className="auth-label" htmlFor="birthday">
-                NGÀY SINH
+                DATE OF BIRTH
               </label>
               <input
                 id="birthday"
@@ -227,14 +227,14 @@ const Register = () => {
           <div className="auth-form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label className="auth-label" htmlFor="password">
-                MẬT KHẨU *
+                PASSWORD *
               </label>
               <div className="auth-input-container">
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   className={`auth-input ${formErrors.password ? 'auth-input-error' : ''}`}
-                  placeholder="Ít nhất 6 ký tự"
+                  placeholder="At least 6 characters"
                   value={formData.password}
                   onChange={handleChange}
                   disabled={isSubmitting}
@@ -265,13 +265,13 @@ const Register = () => {
             </div>
             <div>
               <label className="auth-label" htmlFor="confirmPassword">
-                XÁC NHẬN *
+                CONFIRM *
               </label>
               <input
                 id="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
                 className={`auth-input ${formErrors.confirmPassword ? 'auth-input-error' : ''}`}
-                placeholder="Nhập lại mật khẩu"
+                placeholder="Re-enter password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 disabled={isSubmitting}
@@ -283,12 +283,12 @@ const Register = () => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={isSubmitting} style={{ marginTop: '1rem' }}>
-            {isSubmitting ? 'Đang tạo tài khoản...' : 'Đăng Ký'}
+            {isSubmitting ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
         <div className="auth-divider">
-          <span>HOẶC</span>
+          <span>OR</span>
         </div>
 
         <button
@@ -315,13 +315,13 @@ const Register = () => {
               d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"
             />
           </svg>
-          <span>Đăng ký nhanh bằng Google</span>
+          <span>Sign up with Google</span>
         </button>
 
         <div className="auth-footer" style={{ marginTop: '1.25rem' }}>
-          Đã có tài khoản?{' '}
+          Already have an account?{' '}
           <Link to="/login" className="auth-link">
-            Đăng nhập
+            Sign in
           </Link>
         </div>
       </div>

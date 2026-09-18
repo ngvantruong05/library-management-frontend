@@ -85,11 +85,11 @@ const MyFines = () => {
     setFines((prev) =>
       prev.map((f) => (f.id === updatedFine.id ? updatedFine : f))
     )
-    showToast('Đã gửi yêu cầu nộp phạt! Vui lòng chờ thủ thư đối soát phê duyệt.')
+    showToast('Payment request submitted! Please wait for librarian verification.')
   }
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'VND',
     }).format(amount || 0)

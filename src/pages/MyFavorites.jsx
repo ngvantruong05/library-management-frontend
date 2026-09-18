@@ -40,7 +40,6 @@ const MyFavorites = () => {
   }
 
   const handleBorrowSubmit = (book, type, numCopies) => {
-    alert(`Successfully borrowed "${book.title}" (${type}${type === 'OFFLINE' ? ` - ${numCopies || 1} copies` : ''})!`)
     setShowDetailModal(false)
   }
 

@@ -325,7 +325,7 @@ const AdminLoans = () => {
                   </div>
 
                   <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 Hồ sơ cá nhân & Avatar
+                    👤 My Profile
                   </Link>
 
                   <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
@@ -403,6 +403,16 @@ const AdminLoans = () => {
             </svg>
             Categories
           </button>
+
+          <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+            <button className="db-sidebar-btn" onClick={() => navigate('/profile')}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              My Profile
+            </button>
+          </div>
         </aside>
 
         {/* Content Area */}
@@ -563,13 +573,18 @@ const AdminLoans = () => {
                               alt={loan.bookTitle}
                               className="admin-table-thumb"
                               style={{ width: '40px', height: '52px' }}
-                              onError={(e) => { e.target.src = 'https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api' }}
+                              onError={(e) => { 
+                                e.target.onerror = null; 
+                                e.target.style.display = 'none'; 
+                                if (e.target.nextSibling) {
+                                  e.target.nextSibling.style.display = 'flex';
+                                }
+                              }}
                             />
-                          ) : (
-                            <div className="admin-table-placeholder-thumb" style={{ width: '40px', height: '52px' }}>
-                              <span style={{ fontSize: '0.5rem' }}>No Cover</span>
-                            </div>
-                          )}
+                          ) : null}
+                          <div className="admin-table-placeholder-thumb" style={{ width: '40px', height: '52px', display: loan.bookThumbnail ? 'none' : 'flex' }}>
+                            <span style={{ fontSize: '0.5rem' }}>No Cover</span>
+                          </div>
                         </td>
                         <td style={{ fontWeight: '500', minWidth: '150px' }}>{loan.bookTitle}</td>
                         <td>{formatDate(loan.borrowDate)}</td>

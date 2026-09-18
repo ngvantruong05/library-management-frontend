@@ -40,30 +40,35 @@ const MyLoans = () => {
     fetchLoans()
   }, [])
 
-  // Filtered loans based on search, validity, and mode
   const filteredLoans = useMemo(() => {
-    return loans.filter((loan) => {
-      // Search by title
-      const titleMatch = !searchTerm || (loan.bookTitle && loan.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()))
-      
-      // Filter by validity
-      let validityMatch = true
-      if (validityFilter === 'Valid') {
-        validityMatch = loan.valid === true
-      } else if (validityFilter === 'Invalid') {
-        validityMatch = loan.valid === false
-      }
+    return loans
+      .filter((loan) => {
+        // Search by title
+        const titleMatch = !searchTerm || (loan.bookTitle && loan.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()))
+        
+        // Filter by validity
+        let validityMatch = true
+        if (validityFilter === 'Valid') {
+          validityMatch = loan.valid === true
+        } else if (validityFilter === 'Invalid') {
+          validityMatch = loan.valid === false
+        }
 
-      // Filter by mode
-      let modeMatch = true
-      if (modeFilter === 'Online') {
-        modeMatch = loan.type === 'ONLINE'
-      } else if (modeFilter === 'Offline') {
-        modeMatch = loan.type === 'OFFLINE'
-      }
+        // Filter by mode
+        let modeMatch = true
+        if (modeFilter === 'Online') {
+          modeMatch = loan.type === 'ONLINE'
+        } else if (modeFilter === 'Offline') {
+          modeMatch = loan.type === 'OFFLINE'
+        }
 
-      return titleMatch && validityMatch && modeMatch
-    })
+        return titleMatch && validityMatch && modeMatch
+      })
+      .sort((a, b) => {
+        const timeA = a.borrowDate ? new Date(a.borrowDate).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : (a.id || 0))
+        const timeB = b.borrowDate ? new Date(b.borrowDate).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : (b.id || 0))
+        return timeB - timeA
+      })
   }, [loans, searchTerm, validityFilter, modeFilter])
 
   // Reset page when filters change
@@ -101,9 +106,51 @@ const MyLoans = () => {
     }
   }
 
-  // Handle read online book (placeholder for now)
-  const handleReadBook = (_loan) => {
-    showToast('Tính năng đọc sách online đang được hoàn thiện...', 'info')
+  // Handle read online book directly in a new tab for valid borrowed books
+  const handleReadBook = async (loan) => {
+    if (!loan.valid) {
+      showToast('This loan has expired or been returned. Please borrow again to read.', 'error')
+      return
+    }
+
+    let rawUrl = (loan.pdfLink || loan.bookPdfLink || '').trim()
+
+    // If PDF link is not directly in loan DTO, fetch book details dynamically
+    if (!rawUrl && loan.bookId) {
+      try {
+        const res = await api.get(`/api/books/${loan.bookId}`)
+        if (res.data && res.data.pdfLink) {
+          rawUrl = res.data.pdfLink.trim()
+        }
+      } catch (err) {
+        console.error('Failed to fetch book pdf link:', err)
+      }
+    }
+
+    if (rawUrl && (rawUrl.toLowerCase().endsWith('.pdf') || rawUrl.toLowerCase().includes('.pdf?'))) {
+      rawUrl = rawUrl.replace('http://', 'https://')
+      window.open(rawUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    if (rawUrl.includes('drive.google.com/file/d/')) {
+      const drivePreviewUrl = rawUrl.replace(/\/view(\?.*)?$/, '/preview')
+      window.open(drivePreviewUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    if (
+      rawUrl &&
+      rawUrl.startsWith('http') &&
+      !rawUrl.includes('google.com') &&
+      !rawUrl.includes('play.google.com') &&
+      rawUrl !== 'http://example.com/pdf'
+    ) {
+      window.open(rawUrl.replace('http://', 'https://'), '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    showToast(`The book "${loan.bookTitle}" does not have an official PDF sample attached yet.`, 'error')
   }
 
   // Handle book title or re-borrow click to open detail
@@ -140,13 +187,13 @@ const MyLoans = () => {
     if (diffDays < 0 || loan.status === 'OVERDUE') {
       return (
         <span className="fx-loan-chip" style={{ backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5' }}>
-          🚨 Quá hạn {Math.abs(diffDays)} ngày
+          🚨 Overdue by {Math.abs(diffDays)} days
         </span>
       )
     } else if (diffDays <= 3) {
       return (
         <span className="fx-loan-chip" style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
-          ⚠️ Sắp hết hạn ({diffDays === 0 ? 'Hôm nay' : `${diffDays} ngày`})
+          ⚠️ Due soon ({diffDays === 0 ? 'Today' : `${diffDays} days`})
         </span>
       )
     }
@@ -257,12 +304,22 @@ const MyLoans = () => {
                 {/* Thumbnail */}
                 <div className="fx-loan-thumb-container" onClick={() => handleOpenBook(loan.bookId)}>
                   {loan.bookThumbnail ? (
-                    <img src={loan.bookThumbnail} alt={loan.bookTitle} className="fx-loan-thumb" />
-                  ) : (
-                    <div className="fx-loan-thumb-placeholder">
-                      <span>No Cover</span>
-                    </div>
-                  )}
+                    <img 
+                      src={loan.bookThumbnail} 
+                      alt={loan.bookTitle} 
+                      className="fx-loan-thumb" 
+                      onError={(e) => {
+                        e.target.onerror = null
+                        e.target.style.display = 'none'
+                        if (e.target.nextSibling) {
+                          e.target.nextSibling.style.display = 'flex'
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div className="fx-loan-thumb-placeholder" style={{ display: loan.bookThumbnail ? 'none' : 'flex' }}>
+                    <span>No Cover</span>
+                  </div>
                 </div>
 
                 {/* Details */}

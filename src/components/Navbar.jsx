@@ -110,7 +110,7 @@ const Navbar = ({ onSearch }) => {
             {showDropdown && (
               <div className="fx-dropdown-menu" onClick={(e) => e.stopPropagation()}>
                 <div className="fx-dropdown-header">
-                  <span className="fx-dropdown-name">{user.displayName || 'Người dùng'}</span>
+                  <span className="fx-dropdown-name">{user.displayName || 'User'}</span>
                   <span className="fx-dropdown-email">{user.email || ''}</span>
                 </div>
                 
@@ -126,18 +126,18 @@ const Navbar = ({ onSearch }) => {
                   onClick={() => setShowDropdown(false)}
                   style={{ textDecoration: 'none', color: 'inherit' }}
                 >
-                  👤 Hồ sơ cá nhân
+                  👤 My Profile
                 </Link>
 
                 <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
-                  <span>Giao diện:</span>
+                  <span>Theme:</span>
                   <button className="fx-theme-switch-btn" onClick={toggleTheme}>
-                    {theme === 'light' ? '☀️ Sáng' : '🌙 Tối'}
+                    {theme === 'light' ? '☀️ Light' : '🌙 Dark'}
                   </button>
                 </div>
                 
                 <button className="fx-dropdown-item logout-item" onClick={logout}>
-                  Đăng xuất ➔
+                  Log out ➔
                 </button>
               </div>
             )}

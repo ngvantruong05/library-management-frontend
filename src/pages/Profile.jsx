@@ -87,7 +87,7 @@ const Profile = () => {
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      showToast('Vui lòng chọn một tệp hình ảnh (.png, .jpg, .jpeg, .webp)', 'error')
+      showToast('Please select an image file (.png, .jpg, .jpeg, .webp)', 'error')
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
@@ -114,22 +114,22 @@ const Profile = () => {
           const response = await api.put('/api/auth/me/avatar', { photoUrl: base64Image })
           setUser(response.data)
           setPhotoUrl(response.data.photoUrl || '')
-          showToast('Cập nhật ảnh đại diện thành công!', 'success')
+          showToast('Avatar updated successfully!', 'success')
         } catch (err) {
           console.error('Error processing or saving avatar:', err.response?.data || err)
-          const errorMsg = err.response?.data?.message || err.message || 'Không thể lưu ảnh đại diện vào cơ sở dữ liệu.'
+          const errorMsg = err.response?.data?.message || err.message || 'Could not save avatar.'
           showToast(errorMsg, 'error')
         } finally {
           setIsUploadingAvatar(false)
         }
       }
       img.onerror = () => {
-        showToast('Không thể giải mã tệp ảnh này.', 'error')
+        showToast('Could not decode image file.', 'error')
       }
       img.src = event.target.result
     }
     reader.onerror = () => {
-      showToast('Không thể đọc tệp đã chọn.', 'error')
+      showToast('Could not read selected file.', 'error')
     }
     reader.readAsDataURL(file)
 
@@ -145,10 +145,10 @@ const Profile = () => {
       const response = await api.put('/api/auth/me/avatar', { photoUrl: '' })
       setUser(response.data)
       setPhotoUrl('')
-      showToast('Đã xóa ảnh đại diện thành công!', 'success')
+      showToast('Avatar removed successfully!', 'success')
     } catch (err) {
       console.error('Failed to remove avatar from backend:', err.response?.data || err)
-      const errorMsg = err.response?.data?.message || err.message || 'Lỗi khi xóa ảnh đại diện.'
+      const errorMsg = err.response?.data?.message || err.message || 'Error removing avatar.'
       showToast(errorMsg, 'error')
     } finally {
       setIsUploadingAvatar(false)
@@ -159,7 +159,7 @@ const Profile = () => {
   const handleSaveProfile = async (e) => {
     e.preventDefault()
     if (!displayName.trim()) {
-      showToast('Họ và tên không được để trống.', 'error')
+      showToast('Full name cannot be empty.', 'error')
       return
     }
 
@@ -173,10 +173,10 @@ const Profile = () => {
       })
       setUser(response.data)
       setIsEditing(false)
-      showToast('Cập nhật thông tin thành công!', 'success')
+      showToast('Profile updated successfully!', 'success')
     } catch (err) {
       console.error('Failed to update profile:', err)
-      const msg = err.response?.data?.message || 'Cập nhật thông tin thất bại.'
+      const msg = err.response?.data?.message || 'Failed to update profile.'
       showToast(msg, 'error')
     } finally {
       setIsSavingInfo(false)
@@ -187,15 +187,15 @@ const Profile = () => {
   const handleUpdatePassword = async (e) => {
     e.preventDefault()
     if (!oldPassword) {
-      showToast('Vui lòng nhập mật khẩu hiện tại.', 'error')
+      showToast('Please enter your current password.', 'error')
       return
     }
     if (newPassword.length < 6) {
-      showToast('Mật khẩu mới phải có ít nhất 6 ký tự.', 'error')
+      showToast('New password must be at least 6 characters.', 'error')
       return
     }
     if (newPassword !== confirmPassword) {
-      showToast('Mật khẩu xác nhận không khớp.', 'error')
+      showToast('Passwords do not match.', 'error')
       return
     }
 
@@ -205,13 +205,13 @@ const Profile = () => {
         oldPassword,
         newPassword
       })
-      showToast('Cập nhật mật khẩu thành công!', 'success')
+      showToast('Password updated successfully!', 'success')
       setOldPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err) {
       console.error('Failed to update password:', err)
-      const msg = err.response?.data?.message || 'Mật khẩu cũ không chính xác.'
+      const msg = err.response?.data?.message || 'Incorrect old password.'
       showToast(msg, 'error')
     } finally {
       setIsUpdatingPassword(false)
@@ -336,7 +336,7 @@ const Profile = () => {
               {showDropdown && (
                 <div className="fx-dropdown-menu" onClick={(e) => e.stopPropagation()}>
                   <div className="fx-dropdown-header">
-                    <span className="fx-dropdown-name">{user.displayName || 'Người dùng'}</span>
+                    <span className="fx-dropdown-name">{user.displayName || 'User'}</span>
                     <span className="fx-dropdown-email">{user.email || ''}</span>
                     <span className={`db-badge ${isAdmin ? 'db-badge-admin' : 'db-badge-user'}`} style={{ marginTop: '0.25rem', display: 'inline-block' }}>
                       {isAdmin ? 'Admin' : 'Member'}
@@ -344,7 +344,7 @@ const Profile = () => {
                   </div>
 
                   <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 Hồ sơ cá nhân
+                    👤 My Profile
                   </Link>
 
                   <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
@@ -419,13 +419,13 @@ const Profile = () => {
               Categories
             </button>
 
-            <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+            <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
               <button className="db-sidebar-btn active" onClick={() => navigate('/profile')}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                Hồ sơ cá nhân
+                My Profile
               </button>
             </div>
           </aside>
@@ -435,7 +435,7 @@ const Profile = () => {
         <main className="db-content" style={{ margin: isAdmin ? 0 : '0 auto', padding: '2rem', flex: 1, maxWidth: '1100px', boxSizing: 'border-box' }}>
           {/* Header */}
           <div style={{ marginBottom: '1.5rem' }}>
-            <h1 className="db-section-title">Hồ sơ cá nhân</h1>
+            <h1 className="db-section-title">My Profile</h1>
           </div>
 
           {/* 2-Column Responsive Layout */}
@@ -447,7 +447,7 @@ const Profile = () => {
                 <div
                   className="profile-avatar-wrapper"
                   onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                  title="Nhấp để đổi ảnh đại diện"
+                  title="Click to change avatar"
                 >
                   {photoUrl ? (
                     <img src={photoUrl} alt="Avatar" className="profile-avatar-img" />
@@ -455,15 +455,15 @@ const Profile = () => {
                     <span>{getInitials()}</span>
                   )}
                   <div className="profile-avatar-overlay">
-                    <span>📷 Đổi ảnh</span>
+                    <span>📷 Change</span>
                   </div>
                 </div>
 
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                  {displayName || 'Người dùng'}
+                  {displayName || 'User'}
                 </h2>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-                  {isAdmin ? 'Quản trị viên Thư viện (Administrator)' : 'Độc giả thành viên (Library Member)'}
+                  {isAdmin ? 'Library Administrator' : 'Library Member'}
                 </span>
 
                 <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
@@ -474,15 +474,15 @@ const Profile = () => {
                     style={{ flex: 1, fontSize: '0.85rem' }}
                     disabled={isUploadingAvatar}
                   >
-                    {isUploadingAvatar ? '⏳ Đang xử lý...' : '📁 Tải ảnh từ máy'}
+                    {isUploadingAvatar ? '⏳ Processing...' : '📁 Upload Photo'}
                   </button>
                   {photoUrl && (
                     <button
                       type="button"
                       className="profile-avatar-delete-btn"
                       onClick={handleRemoveAvatar}
-                      title="Xóa ảnh đại diện"
-                      aria-label="Xóa ảnh đại diện"
+                      title="Remove avatar"
+                      aria-label="Remove avatar"
                       disabled={isUploadingAvatar}
                     >
                       <svg
@@ -508,11 +508,11 @@ const Profile = () => {
               {/* Password Card */}
               <div className="profile-card">
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 1rem 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  🔒 Đổi mật khẩu
+                  🔒 Change Password
                 </h3>
                 <form onSubmit={handleUpdatePassword} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   <div className="form-group">
-                    <label className="form-label">Mật khẩu hiện tại</label>
+                    <label className="form-label">Current Password</label>
                     <input
                       type="password"
                       className="form-input"
@@ -522,23 +522,23 @@ const Profile = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Mật khẩu mới</label>
+                    <label className="form-label">New Password</label>
                     <input
                       type="password"
                       className="form-input"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Tối thiểu 6 ký tự"
+                      placeholder="At least 6 characters"
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Xác nhận mật khẩu mới</label>
+                    <label className="form-label">Confirm New Password</label>
                     <input
                       type="password"
                       className="form-input"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Nhập lại mật khẩu mới"
+                      placeholder="Re-enter new password"
                     />
                   </div>
                   <button
@@ -547,7 +547,7 @@ const Profile = () => {
                     disabled={isUpdatingPassword}
                     style={{ marginTop: '0.5rem', width: '100%', fontSize: '0.85rem' }}
                   >
-                    {isUpdatingPassword ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
+                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
                   </button>
                 </form>
               </div>
@@ -559,7 +559,7 @@ const Profile = () => {
               <div className="profile-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    🪪 Thông tin tài khoản
+                    🪪 Account Details
                   </h3>
                   {!isEditing ? (
                     <button
@@ -567,7 +567,7 @@ const Profile = () => {
                       onClick={() => setIsEditing(true)}
                       style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
                     >
-                      ✏️ Chỉnh sửa
+                      ✏️ Edit
                     </button>
                   ) : (
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -583,7 +583,7 @@ const Profile = () => {
                         }}
                         style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
                       >
-                        Hủy
+                        Cancel
                       </button>
                       <button
                         className="catalog-btn-primary"
@@ -591,7 +591,7 @@ const Profile = () => {
                         disabled={isSavingInfo}
                         style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
                       >
-                        {isSavingInfo ? 'Đang lưu...' : 'Lưu thay đổi'}
+                        {isSavingInfo ? 'Saving...' : 'Save Changes'}
                       </button>
                     </div>
                   )}
@@ -599,7 +599,7 @@ const Profile = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                   <div className="form-group">
-                    <label className="form-label">Họ và tên</label>
+                    <label className="form-label">Full Name</label>
                     <input
                       type="text"
                       className="form-input"
@@ -610,7 +610,7 @@ const Profile = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Địa chỉ Email</label>
+                    <label className="form-label">Email Address</label>
                     <input
                       type="email"
                       className="form-input"
@@ -621,24 +621,24 @@ const Profile = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Số điện thoại</label>
+                    <label className="form-label">Phone Number</label>
                     <input
                       type="tel"
                       className="form-input"
                       disabled={!isEditing}
                       value={phoneNumber}
-                      placeholder="Chưa cập nhật"
+                      placeholder="Not set"
                       onChange={(e) => setPhoneNumber(e.target.value)}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Vai trò hệ thống</label>
+                    <label className="form-label">Role</label>
                     <div
                       className="form-input"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.8, cursor: 'default' }}
                     >
-                      <span>{isAdmin ? 'Quản trị viên (ADMIN)' : 'Thành viên (USER)'}</span>
+                      <span>{isAdmin ? 'Administrator (ADMIN)' : 'Member (USER)'}</span>
                       <span className="db-badge db-badge-user" style={{ fontSize: '0.7rem' }}>Active</span>
                     </div>
                   </div>
@@ -649,31 +649,31 @@ const Profile = () => {
               <div className="profile-card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    📜 Lịch sử mượn sách gần đây
+                    📜 Recent Borrowing History
                   </h3>
                   <button
                     className="admin-btn-default"
                     onClick={() => navigate(isAdmin ? '/admin/loans' : '/loans')}
                     style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
                   >
-                    Xem tất cả ➔
+                    View All ➔
                   </button>
                 </div>
 
                 <div className="admin-table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none', maxHeight: '350px' }}>
                   {isLoadingLoans ? (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      Đang tải danh sách mượn sách...
+                      Loading loan history...
                     </div>
                   ) : loans && loans.length > 0 ? (
                     <table className="admin-table">
                       <thead>
                         <tr>
-                          <th>Tác phẩm</th>
-                          <th style={{ whiteSpace: 'nowrap' }}>Ngày mượn</th>
-                          <th style={{ whiteSpace: 'nowrap' }}>Hạn trả</th>
-                          <th style={{ whiteSpace: 'nowrap' }}>Định dạng</th>
-                          <th style={{ whiteSpace: 'nowrap' }}>Trạng thái</th>
+                          <th>Book Title</th>
+                          <th style={{ whiteSpace: 'nowrap' }}>Borrow Date</th>
+                          <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
+                          <th style={{ whiteSpace: 'nowrap' }}>Format</th>
+                          <th style={{ whiteSpace: 'nowrap' }}>Status</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -681,13 +681,13 @@ const Profile = () => {
                           <tr key={loan.id}>
                             <td>
                               <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{loan.bookTitle}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mã phiếu: #{loan.id}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Loan ID: #{loan.id}</div>
                             </td>
                             <td style={{ whiteSpace: 'nowrap' }}>{formatDate(loan.borrowDate)}</td>
                             <td style={{ whiteSpace: 'nowrap' }}>{formatDate(loan.dueDate)}</td>
                             <td style={{ whiteSpace: 'nowrap' }}>
                               <span style={{ fontSize: '0.85rem' }}>
-                                {loan.type === 'ONLINE' ? '💻 E-Book' : '📖 Sách giấy'}
+                                {loan.type === 'ONLINE' ? '💻 E-Book' : '📖 Paper Book'}
                               </span>
                             </td>
                             <td style={{ whiteSpace: 'nowrap' }}>
@@ -698,7 +698,7 @@ const Profile = () => {
                                   ? 'admin-badge-status-overdue'
                                   : 'admin-badge-status-borrowed'
                               }>
-                                {loan.status === 'RETURNED' ? 'Đã trả' : loan.status === 'OVERDUE' ? 'Quá hạn' : 'Đang mượn'}
+                                {loan.status === 'RETURNED' ? 'Returned' : loan.status === 'OVERDUE' ? 'Overdue' : 'Active'}
                               </span>
                             </td>
                           </tr>
@@ -707,7 +707,7 @@ const Profile = () => {
                     </table>
                   ) : (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      Chưa có phiếu mượn sách nào được ghi nhận.
+                      No borrowing activity recorded yet.
                     </div>
                   )}
                 </div>
