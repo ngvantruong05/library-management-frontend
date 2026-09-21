@@ -135,9 +135,9 @@
 .auth-input {
   width: 100%;
   padding: 0.875rem 1rem;
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  background: var(--bg-input, #ffffff);
+  border: 1px solid var(--border-color, #d1d5db) !important;
+  border-radius: 12px !important;
   color: var(--text-primary);
   font-size: 0.95rem;
   font-family: inherit;

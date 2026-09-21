@@ -561,10 +561,10 @@
 .admin-search-input {
   width: 240px;
   padding: 0.5rem 1rem;
-  background-color: var(--bg-input);
-  border: 1px solid transparent;
+  background-color: var(--bg-input) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 8px;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
   font-size: 0.9rem;
   font-family: var(--font-primary);
   transition: all var(--transition-speed) ease;
@@ -572,8 +572,8 @@
 
 .admin-search-input:focus {
   outline: none;
-  background-color: var(--bg-input-focus);
-  border-color: var(--border-focused);
+  background-color: var(--bg-input-focus) !important;
+  border-color: var(--border-focused) !important;
   box-shadow: 0 0 0 2px var(--color-primary-bg);
 }
 
