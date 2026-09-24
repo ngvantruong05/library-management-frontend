@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://library-management-backend-6dbn.onrender.com',
         changeOrigin: true,
         secure: false,
       }

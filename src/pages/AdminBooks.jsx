@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../services/api'
+import Navbar from '../components/Navbar'
 import AddEditBookModal from '../components/AddEditBookModal'
 import AdminBooksControls from '../components/AdminBooksControls'
 import AdminBooksTable from '../components/AdminBooksTable'
@@ -10,9 +9,10 @@ import ManageCopiesModal from '../components/ManageCopiesModal'
 import '../styles/dashboard.css'
 
 const AdminBooks = () => {
-  const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const urlQuery = searchParams.get('q') || ''
 
   // State for books table & pagination
   const [books, setBooks] = useState([])
@@ -20,14 +20,12 @@ const AdminBooks = () => {
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [totalElements, setTotalElements] = useState(0)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState(urlQuery)
   const [activeFilter, setActiveFilter] = useState('All')
 
   // Loading and error states
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [searchNavbarQuery, setSearchNavbarQuery] = useState('')
   const [notification, setNotification] = useState(null)
 
   // Dropdown list data for AddEditBookModal
@@ -76,14 +74,6 @@ const AdminBooks = () => {
     }, 4000)
   }
 
-  // Handle closing avatar dropdown clicking outside
-  useEffect(() => {
-    const handleClose = () => setShowDropdown(false)
-    window.addEventListener('click', handleClose)
-    return () => {
-      window.removeEventListener('click', handleClose)
-    }
-  }, [])
 
   // Cleanup timeout on unmount to prevent memory leaks
   useEffect(() => {
@@ -165,45 +155,56 @@ const AdminBooks = () => {
     }
   }, [books, activeFilter])
 
-  const fetchBookCopiesStock = useCallback(async (bookId) => {
-    try {
-      const res = await api.get(`/api/book-copies/book/${bookId}`)
-      if (res.data) {
-        setCopiesStock(prev => ({
-          ...prev,
-          [bookId]: {
-            available: res.data.availableCopies,
-            total: res.data.totalCopies
-          }
-        }))
-      }
-    } catch {
-      // Set to 0 if record not found
-      setCopiesStock(prev => ({
-        ...prev,
-        [bookId]: { available: 0, total: 0 }
-      }))
-    }
-  }, [])
-
-  // Fetch copies stock for each book in the list
+  // Batch fetch copies stock for current page of books
   useEffect(() => {
-    if (books.length > 0) {
-      books.forEach(book => {
-        fetchBookCopiesStock(book.id)
+    if (books.length === 0) return
+    let isSubscribed = true
+
+    Promise.allSettled(
+      books.map(b => api.get(`/api/book-copies/book/${b.id}`))
+    ).then(results => {
+      if (!isSubscribed) return
+      const updatedMap = {}
+      results.forEach((res, index) => {
+        const bookId = books[index].id
+        if (res.status === 'fulfilled' && res.value?.data) {
+          updatedMap[bookId] = {
+            available: res.value.data.availableCopies,
+            total: res.value.data.totalCopies
+          }
+        } else {
+          updatedMap[bookId] = { available: 0, total: 0 }
+        }
       })
+      setCopiesStock(prev => ({ ...prev, ...updatedMap }))
+    })
+
+    return () => {
+      isSubscribed = false
     }
-  }, [books, fetchBookCopiesStock])
+  }, [books])
+
+  // Sync state if URL query changes
+  useEffect(() => {
+    const qFromUrl = searchParams.get('q') || ''
+    setSearchQuery(qFromUrl)
+    setPage(0)
+  }, [searchParams])
 
   const handleSearchChange = (e) => {
     const val = e.target.value
+    setSearchQuery(val)
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
     }
     searchTimeoutRef.current = setTimeout(() => {
-      setSearchQuery(val)
       setPage(0)
-    }, 500)
+      if (val.trim()) {
+        setSearchParams({ q: val.trim() })
+      } else {
+        setSearchParams({})
+      }
+    }, 400)
   }
 
   const handlePageSizeChange = (e) => {
@@ -223,14 +224,6 @@ const AdminBooks = () => {
     }
   }
 
-  const handleNavbarSearchSubmit = (e) => {
-    e.preventDefault()
-    if (searchNavbarQuery.trim()) {
-      setSearchQuery(searchNavbarQuery)
-      setPage(0)
-    }
-  }
-
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
     try {
@@ -243,13 +236,6 @@ const AdminBooks = () => {
     } catch {
       return dateStr
     }
-  }
-
-  const getInitials = () => {
-    if (!user?.displayName) return 'AD'
-    const parts = user.displayName.split(' ')
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
 
   // --- CRUD ACTIONS ---
@@ -313,28 +299,48 @@ const AdminBooks = () => {
   // Handle Submit of Add/Edit form
   const handleBookFormSubmit = async (e) => {
     e.preventDefault()
+
+    if (!formData.title?.trim()) {
+      alert('Book Title is required!')
+      return
+    }
+    if (!formData.isbn?.trim()) {
+      alert('ISBN is required!')
+      return
+    }
+    if (!formData.publisherId) {
+      alert('Please select a Publisher!')
+      return
+    }
+
     try {
       const payload = {
-        ...formData,
+        title: formData.title.trim(),
+        isbn: formData.isbn.trim(),
+        description: formData.description?.trim() || '',
+        publishedDate: formData.publishedDate?.trim() || '',
+        pageCount: Number(formData.pageCount) || 0,
+        price: Number(formData.price) || 0,
+        discountPrice: Number(formData.discountPrice) || 0,
+        language: formData.language?.trim() || 'English',
+        currencyCode: formData.currencyCode || 'VND',
+        thumbnail: formData.thumbnail?.trim() || '',
+        pdfLink: formData.pdfLink?.trim() || '',
         publisherId: Number(formData.publisherId),
-        pageCount: Number(formData.pageCount),
-        price: Number(formData.price),
-        discountPrice: Number(formData.discountPrice),
         authorIds: (formData.authorIds || []).map(Number),
         categoryIds: (formData.categoryIds || []).map(Number)
       }
 
       if (selectedBook) {
-        const confirmUpdate = window.confirm(`Are you sure you want to update the book "${payload.title}"?`)
-        if (!confirmUpdate) return
-
         await api.put(`/api/books/${selectedBook.id}`, payload)
         showToast(`Successfully updated book "${payload.title}"`)
       } else {
-        const confirmAdd = window.confirm(`Are you sure you want to add the new book "${payload.title}"?`)
-        if (!confirmAdd) return
-
-        await api.post('/api/books', payload)
+        const createRes = await api.post('/api/books', payload)
+        const newBookId = createRes.data?.id
+        if (newBookId) {
+          // Initialize 10 copies on shelf so the book is immediately available for loans
+          api.put(`/api/book-copies/book/${newBookId}?totalCopies=10`).catch(() => {})
+        }
         showToast(`Successfully created new book "${payload.title}"`)
       }
 
@@ -342,22 +348,29 @@ const AdminBooks = () => {
       fetchBooks()
     } catch (err) {
       console.error('Failed to save book:', err)
-      const errorMsg = err.response?.data?.message || 'Failed to save book details. Please check form inputs.'
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || 'Failed to save book details. Please check form inputs.'
       alert(`Error: ${errorMsg}`)
     }
   }
 
-  // Delete Book action
+  // Delete / Toggle Active Book action
   const handleDeleteBook = async (book) => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete book "${book.title}" (ISBN: ${book.isbn})?`)
-    if (confirmDelete) {
+    const isActivating = !book.activated
+    const actionText = isActivating ? 'restore' : 'deactivate'
+    const confirmAction = window.confirm(`Are you sure you want to ${actionText} book "${book.title}" (ISBN: ${book.isbn})?`)
+    if (confirmAction) {
       try {
-        await api.delete(`/api/books/${book.id}`)
-        showToast(`Successfully deleted book "${book.title}"`)
+        if (isActivating) {
+          await api.patch(`/api/books/${book.id}/activate`)
+          showToast(`Successfully restored book "${book.title}"`)
+        } else {
+          await api.delete(`/api/books/${book.id}`)
+          showToast(`Successfully deactivated book "${book.title}"`)
+        }
         fetchBooks()
       } catch (err) {
-        console.error('Failed to delete book:', err)
-        alert('Failed to delete book. It might be linked to existing loans.')
+        console.error('Failed to update book status:', err)
+        alert('Failed to update book status. Please try again.')
       }
     }
   }
@@ -371,7 +384,7 @@ const AdminBooks = () => {
     setTotalCopiesInput(0)
     setAvailableCopiesText(0)
     setShowCopiesModal(true)
-    
+
     try {
       const res = await api.get(`/api/book-copies/book/${book.id}`)
       if (res.data) {
@@ -397,7 +410,16 @@ const AdminBooks = () => {
       })
       showToast(`Successfully updated copies for "${copiesBook.title}"`)
       setShowCopiesModal(false)
-      fetchBookCopiesStock(copiesBook.id) // Reload stock for this specific book
+      const res = await api.get(`/api/book-copies/book/${copiesBook.id}`)
+      if (res.data) {
+        setCopiesStock(prev => ({
+          ...prev,
+          [copiesBook.id]: {
+            available: res.data.availableCopies,
+            total: res.data.totalCopies
+          }
+        }))
+      }
     } catch (err) {
       console.error('Failed to update copies:', err)
       alert('Failed to update book copies. Please try again.')
@@ -414,87 +436,7 @@ const AdminBooks = () => {
       )}
 
       {/* Top Navigation Bar */}
-      <header className="fx-navbar">
-        <div className="fx-navbar-left">
-          <Link to="/dashboard" className="fx-logo-container">
-            <div className="fx-logo-icon">
-              <div className="fx-logo-bar fx-logo-bar-1"></div>
-              <div className="fx-logo-bar fx-logo-bar-2"></div>
-              <div className="fx-logo-bar fx-logo-bar-3"></div>
-            </div>
-            <span className="fx-logo-text">Library Manager</span>
-          </Link>
-        </div>
-
-        <div className="fx-navbar-middle">
-          <form onSubmit={handleNavbarSearchSubmit} className="fx-search-form">
-            <input
-              type="text"
-              className="fx-search-input"
-              placeholder="Search book..."
-              value={searchNavbarQuery}
-              onChange={(e) => setSearchNavbarQuery(e.target.value)}
-            />
-          </form>
-        </div>
-
-        <div className="fx-navbar-right">
-          <nav className="fx-nav-links">
-            <Link to="/dashboard" className="fx-nav-link">Home</Link>
-            <Link to="/books" className="fx-nav-link">All Books</Link>
-            <Link to="/categories" className="fx-nav-link">Categories</Link>
-            <Link to="/loans" className="fx-nav-link">My Loans</Link>
-            <Link to="/favorites" className="fx-nav-link">My Favorites</Link>
-          </nav>
-
-          {user && (
-            <div className="fx-user-menu-container">
-              <div
-                className="fx-user-avatar"
-                style={{
-                  border: '2px solid var(--color-primary)',
-                  backgroundImage: user.photoUrl ? `url(${user.photoUrl})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  cursor: 'pointer'
-                }}
-                title={user.displayName || 'Admin'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowDropdown(!showDropdown)
-                }}
-              >
-                {!user.photoUrl && getInitials()}
-              </div>
-
-              {showDropdown && (
-                <div className="fx-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                  <div className="fx-dropdown-header">
-                    <span className="fx-dropdown-name">{user.displayName || 'Administrator'}</span>
-                    <span className="fx-dropdown-email">{user.email || ''}</span>
-                    <span className="db-badge db-badge-admin" style={{ marginTop: '0.25rem', display: 'inline-block' }}>Admin</span>
-                  </div>
-
-                  <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 My Profile
-                  </Link>
-
-                  <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
-                    <span>Theme:</span>
-                    <button className="fx-theme-switch-btn" onClick={toggleTheme}>
-                      {theme === 'light' ? '☀️ Light' : '🌙 Dark'}
-                    </button>
-                  </div>
-
-                  <button className="fx-dropdown-item logout-item" onClick={logout}>
-                    Log out ➔
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+      <Navbar onSearch={(q) => { setSearchQuery(q); setPage(0); }} />
 
       {/* Main Admin Sidebar & Content Layout */}
       <div className="admin-books-layout">
@@ -507,7 +449,7 @@ const AdminBooks = () => {
             </svg>
             Dashboard
           </button>
-          
+
           <button className="db-sidebar-btn active" onClick={() => navigate('/admin/books')}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />

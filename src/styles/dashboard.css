@@ -559,7 +559,7 @@
 }
 
 .admin-search-input {
-  width: 240px;
+  width: 260px;
   padding: 0.5rem 1rem;
   background-color: var(--bg-input) !important;
   border: 1px solid var(--border-color) !important;
@@ -576,6 +576,12 @@
   border-color: var(--border-focused) !important;
   box-shadow: 0 0 0 2px var(--color-primary-bg);
 }
+
+.admin-control-group .app-search-wrapper {
+  width: 280px;
+  max-width: 100%;
+}
+
 
 .admin-select-filter {
   width: 150px;

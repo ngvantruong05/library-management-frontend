@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
@@ -42,7 +42,8 @@ const HorizontalBookSection = ({ title, sortBy, sortDir, onBookClick }) => {
           page: pageToFetch,
           size: SECTION_PAGE_SIZE,
           sortBy: sortBy,
-          sortDir: sortDir
+          sortDir: sortDir,
+          active: true
         }
       })
       const data = response.data
@@ -51,12 +52,13 @@ const HorizontalBookSection = ({ title, sortBy, sortDir, onBookClick }) => {
       let isLast = true
 
       if (data && Array.isArray(data.content)) {
-        newItems = data.content
+        newItems = data.content.filter(b => b.activated !== false)
         isLast = data.last ?? (newItems.length < SECTION_PAGE_SIZE)
       } else if (Array.isArray(data)) {
         // Fallback if backend pagination is disabled
-        newItems = data.slice(pageToFetch * SECTION_PAGE_SIZE, (pageToFetch + 1) * SECTION_PAGE_SIZE)
-        isLast = (pageToFetch + 1) * SECTION_PAGE_SIZE >= data.length
+        const activeList = data.filter(b => b.activated !== false)
+        newItems = activeList.slice(pageToFetch * SECTION_PAGE_SIZE, (pageToFetch + 1) * SECTION_PAGE_SIZE)
+        isLast = (pageToFetch + 1) * SECTION_PAGE_SIZE >= activeList.length
       }
 
       if (pageToFetch === 0) {
@@ -73,27 +75,8 @@ const HorizontalBookSection = ({ title, sortBy, sortDir, onBookClick }) => {
       setHasMore(!isLast && newItems.length > 0)
     } catch (error) {
       console.error(`Failed to load books for section ${title}:`, error)
-      // Fallback fallback mock items on connection failure
       if (pageToFetch === 0) {
-        const fallbackList = Array.from({ length: 8 }).map((_, i) => ({
-          id: i + 1,
-          title: `Book Title ${i + 1} - Section ${title}`,
-          isbn: `978-013235088${i}`,
-          description: 'Mock description for development purposes.',
-          publishedDate: '2020-01-01',
-          pageCount: 300 + i * 20,
-          price: 150000,
-          discountPrice: 150000,
-          thumbnail: 'https://images-na.ssl-images-amazon.com/images/I/41xShCOK5mL._SX379_BO1,204,203,200_.jpg',
-          language: 'English',
-          currencyCode: 'VND',
-          publisher: { id: 1, name: 'Prentice Hall' },
-          authors: [{ id: 1, name: 'Robert C. Martin' }],
-          categories: [{ id: 1, name: 'Software' }],
-          availableCopies: 3,
-          rating: 4.0
-        }))
-        setBooks(fallbackList)
+        setBooks([])
         setHasMore(false)
       }
     } finally {
@@ -167,7 +150,6 @@ const HorizontalBookSection = ({ title, sortBy, sortDir, onBookClick }) => {
                 <div className="fx-skeleton-thumb"></div>
                 <div className="fx-skeleton-line fx-skeleton-line-title"></div>
                 <div className="fx-skeleton-line fx-skeleton-line-author"></div>
-                <div className="fx-skeleton-line fx-skeleton-line-tag"></div>
                 <div className="fx-skeleton-shimmer"></div>
               </div>
             ))
@@ -190,7 +172,6 @@ const HorizontalBookSection = ({ title, sortBy, sortDir, onBookClick }) => {
                   <div className="fx-skeleton-thumb"></div>
                   <div className="fx-skeleton-line fx-skeleton-line-title"></div>
                   <div className="fx-skeleton-line fx-skeleton-line-author"></div>
-                  <div className="fx-skeleton-line fx-skeleton-line-tag"></div>
                   <div className="fx-skeleton-shimmer"></div>
                 </div>
               )}
@@ -238,8 +219,9 @@ const Dashboard = () => {
   }
 
   // Handle borrow success notification
-  const handleBorrowSubmit = (book, type, numCopies) => {
+  const handleBorrowSubmit = () => {
     setShowDetailModal(false)
+    showToast('Borrow request placed successfully!')
   }
 
   return (

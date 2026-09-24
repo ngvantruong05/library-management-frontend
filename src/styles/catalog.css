@@ -289,7 +289,7 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  height: 290px;
+  height: 260px;
 }
 
 .fx-book-card:hover {
@@ -371,6 +371,8 @@
   text-overflow: ellipsis;
   transition: color var(--transition-speed) ease;
 }
+
+
 
 /* Home / Dashboard layout */
 .fx-dashboard-container {
@@ -2610,6 +2612,164 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* ====================================================================
+   UNIFIED APP SEARCH INPUT COMPONENT STYLES
+   ==================================================================== */
+.app-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  transition: all var(--transition-speed) ease;
+  box-sizing: border-box;
+}
+
+.app-search-wrapper:hover {
+  border-color: var(--border-focused);
+}
+
+.app-search-wrapper:focus-within {
+  background-color: var(--bg-input-focus);
+  border-color: var(--border-focused);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
+}
+
+.app-search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 0.85rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+  transition: color var(--transition-speed) ease;
+}
+
+.app-search-wrapper:focus-within .app-search-icon {
+  color: var(--color-primary);
+}
+
+.app-search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.app-search-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.app-search-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0.25rem 0.65rem;
+  margin-right: 0.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.app-search-clear-btn:hover {
+  color: var(--text-primary);
+  background-color: rgba(125, 125, 125, 0.15);
+}
+
+/* Size Variants */
+.app-search-compact .app-search-input {
+  padding: 0.38rem 0.55rem;
+  font-size: 0.84rem;
+}
+.app-search-compact .app-search-icon {
+  padding-left: 0.65rem;
+}
+.app-search-compact .app-search-clear-btn {
+  padding: 0.2rem 0.45rem;
+}
+
+.app-search-large .app-search-input {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+.app-search-large .app-search-icon {
+  padding-left: 1rem;
+}
+
+
+/* ====================================================================
+   ACTIVE SEARCH / FILTER BAR STYLES (Used in Catalog & elsewhere)
+   ==================================================================== */
+.fx-active-search-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.fx-active-search-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fx-active-search-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-light);
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.fx-active-search-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fx-active-search-clear:hover {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #ffffff;
+}
+
 
 
 

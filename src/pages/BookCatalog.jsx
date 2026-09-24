@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import BookCard from '../components/BookCard'
@@ -8,12 +9,15 @@ import '../styles/catalog.css'
 const PAGE_SIZE = 12
 
 const BookCatalog = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlQuery = searchParams.get('q') || ''
+
   // Lists & Pagination
   const [books, setBooks] = useState([])
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(true)
   const [totalElements, setTotalElements] = useState(0)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState(urlQuery)
 
   // Loading States
   const [isLoading, setIsLoading] = useState(true)
@@ -57,7 +61,8 @@ const BookCatalog = () => {
         page: pageToFetch,
         size: PAGE_SIZE,
         sortBy: 'id',
-        sortDir: 'desc'
+        sortDir: 'desc',
+        active: true
       }
       if (query && query.trim()) {
         params.q = query.trim()
@@ -71,20 +76,20 @@ const BookCatalog = () => {
       let total = 0
 
       if (data && Array.isArray(data.content)) {
-        newItems = data.content
+        newItems = data.content.filter(b => b.activated !== false)
         isLast = data.last ?? (newItems.length < PAGE_SIZE)
         total = data.totalElements ?? newItems.length
       } else if (Array.isArray(data)) {
-        newItems = data.slice(pageToFetch * PAGE_SIZE, (pageToFetch + 1) * PAGE_SIZE)
-        isLast = (pageToFetch + 1) * PAGE_SIZE >= data.length
-        total = data.length
+        const activeList = data.filter(b => b.activated !== false)
+        newItems = activeList.slice(pageToFetch * PAGE_SIZE, (pageToFetch + 1) * PAGE_SIZE)
+        isLast = (pageToFetch + 1) * PAGE_SIZE >= activeList.length
+        total = activeList.length
       }
 
       if (pageToFetch === 0) {
         setBooks(newItems)
       } else {
         setBooks(prev => {
-          // Avoid duplicate book IDs if any
           const existingIds = new Set(prev.map(b => b.id))
           const filteredNew = newItems.filter(b => !existingIds.has(b.id))
           return [...prev, ...filteredNew]
@@ -96,67 +101,31 @@ const BookCatalog = () => {
       setTotalElements(total)
     } catch (error) {
       console.error('Failed to fetch books:', error)
-      if (pageToFetch === 0) {
-        // Fallback mock items for offline development
-        setBooks([
-          {
-            id: 1,
-            title: 'Clean Code: A Handbook of Agile Software Craftsmanship',
-            isbn: '978-0132350884',
-            description: 'Even bad code can function. But if code isn\'t clean, it can bring a development organization to its knees.',
-            publishedDate: '2008-08-11',
-            pageCount: 464,
-            price: 178500,
-            discountPrice: 178500,
-            thumbnail: 'https://images-na.ssl-images-amazon.com/images/I/41xShCOK5mL._SX379_BO1,204,203,200_.jpg',
-            language: 'English',
-            currencyCode: 'VND',
-            publisher: { id: 1, name: 'Prentice Hall' },
-            authors: [{ id: 1, name: 'Robert C. Martin' }],
-            categories: [{ id: 1, name: 'Software Engineering' }, { id: 2, name: 'Programming' }],
-            availableCopies: 5,
-            rating: 4.5
-          },
-          {
-            id: 2,
-            title: 'The Pragmatic Programmer: Your Journey To Mastery',
-            isbn: '978-0135957059',
-            description: 'The Pragmatic Programmer is one of those rare tech books you\'ll read, re-read, and read again over the years.',
-            publishedDate: '2019-09-13',
-            pageCount: 352,
-            price: 180531,
-            discountPrice: 0,
-            thumbnail: 'https://images-na.ssl-images-amazon.com/images/I/51wI75O1rHL._SX386_BO1,204,203,200_.jpg',
-            language: 'English',
-            currencyCode: 'VND',
-            publisher: { id: 2, name: 'Addison-Wesley' },
-            authors: [{ id: 2, name: 'Andrew Hunt' }, { id: 3, name: 'David Thomas' }],
-            categories: [{ id: 2, name: 'Programming' }],
-            availableCopies: 0,
-            rating: 3.5
-          }
-        ])
-        setTotalElements(2)
-        setHasMore(false)
-      }
     } finally {
       setIsLoading(false)
       setIsFetchingMore(false)
     }
   }
 
-  // Initial load
+  // Sync state & fetch when URL query parameter 'q' changes
   useEffect(() => {
-    fetchPage(0, '', true)
-  }, [])
-
-  // Handle Search from Navbar
-  const handleSearch = (query = '') => {
-    setSearchQuery(query)
+    const qFromUrl = searchParams.get('q') || ''
+    setSearchQuery(qFromUrl)
     setPage(0)
     setHasMore(true)
-    fetchPage(0, query, true)
+    fetchPage(0, qFromUrl, true)
+  }, [searchParams])
+
+  // Handle Search trigger
+  const handleSearch = (query = '') => {
+    const trimmed = query.trim()
+    if (trimmed) {
+      setSearchParams({ q: trimmed })
+    } else {
+      setSearchParams({})
+    }
   }
+
 
   // Load next page
   const loadNextPage = useCallback(() => {
@@ -200,8 +169,9 @@ const BookCatalog = () => {
   }
 
   // Handle borrow success notification
-  const handleBorrowSubmit = (book, type, numCopies) => {
+  const handleBorrowSubmit = () => {
     setShowDetailModal(false)
+    showToast('Borrow request placed successfully!')
   }
 
   return (
@@ -218,15 +188,11 @@ const BookCatalog = () => {
 
       {/* Main Content Area */}
       <main className="fx-content-container">
+        {/* Header Bar */}
         <div className="fx-catalog-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 className="fx-results-count">
             {totalElements} results found
           </h2>
-          {searchQuery && (
-            <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Filtering by: <strong style={{ color: 'var(--color-primary)' }}>"{searchQuery}"</strong>
-            </span>
-          )}
         </div>
 
         {isLoading ? (
@@ -272,7 +238,6 @@ const BookCatalog = () => {
                   <div className="fx-skeleton-thumb"></div>
                   <div className="fx-skeleton-line fx-skeleton-line-title"></div>
                   <div className="fx-skeleton-line fx-skeleton-line-author"></div>
-                  <div className="fx-skeleton-line fx-skeleton-line-tag"></div>
                   <div className="fx-skeleton-shimmer"></div>
                 </div>
               ))}

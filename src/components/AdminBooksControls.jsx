@@ -1,4 +1,5 @@
 import React from 'react'
+import SearchInput from './SearchInput'
 
 const AdminBooksControls = ({
   searchQuery,
@@ -18,12 +19,12 @@ const AdminBooksControls = ({
     <div className="admin-controls-row">
       <div className="admin-control-group">
         <span className="admin-control-label">Search:</span>
-        <input
-          type="text"
-          className="admin-search-input"
+        <SearchInput
+          size="compact"
           placeholder="Search by title, isbn, author..."
-          defaultValue={searchQuery}
+          value={searchQuery}
           onChange={handleSearchChange}
+          onClear={() => handleSearchChange({ target: { value: '' } })}
         />
       </div>
 

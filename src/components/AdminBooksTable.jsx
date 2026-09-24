@@ -1,4 +1,5 @@
 import React from 'react'
+import BookCover from './BookCover'
 
 const AdminBooksTable = ({
   isLoading,
@@ -33,8 +34,6 @@ const AdminBooksTable = ({
               <th>Authors</th>
               <th>Categories</th>
               <th>Price</th>
-              <th>Discount</th>
-              <th>Currency</th>
               <th>Pages</th>
               <th>Language</th>
               <th>Active</th>
@@ -50,23 +49,9 @@ const AdminBooksTable = ({
                 <tr key={book.id}>
                   <td style={{ fontWeight: '600' }}>{book.id}</td>
                   <td>{book.isbn}</td>
-                  <td>
-                    {book.thumbnail ? (
-                      <img
-                        src={book.thumbnail}
-                        alt={book.title}
-                        className="admin-table-thumb"
-                        onError={(e) => { 
-                          e.target.onerror = null; 
-                          e.target.style.display = 'none'; 
-                          if (e.target.nextSibling) {
-                            e.target.nextSibling.style.display = 'flex';
-                          }
-                        }}
-                      />
-                    ) : null}
-                    <div className="admin-table-placeholder-thumb" style={{ display: book.thumbnail ? 'none' : 'flex' }}>
-                      <span style={{ fontSize: '0.6rem' }}>No Img</span>
+                  <td style={{ width: '45px', minWidth: '45px', padding: '6px 8px' }}>
+                    <div style={{ width: '38px', height: '52px', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}>
+                      <BookCover book={book} size="thumb" />
                     </div>
                   </td>
                   <td style={{ fontWeight: '500', minWidth: '150px' }}>{book.title}</td>
@@ -100,9 +85,9 @@ const AdminBooksTable = ({
                       )}
                     </div>
                   </td>
-                  <td>{book.price !== undefined && book.price !== null ? book.price.toFixed(2) : '0.00'}</td>
-                  <td>{book.discountPrice !== undefined && book.discountPrice !== null ? book.discountPrice.toFixed(2) : '0.00'}</td>
-                  <td>{book.currencyCode || 'VND'}</td>
+                  <td style={{ fontWeight: '500', whiteSpace: 'nowrap' }}>
+                    {book.price !== undefined && book.price !== null ? `${Number(book.price).toLocaleString()} VND` : '0 VND'}
+                  </td>
                   <td>{book.pageCount || '-'}</td>
                   <td>{book.language || 'English'}</td>
                   <td>
@@ -129,10 +114,11 @@ const AdminBooksTable = ({
                         Copies
                       </button>
                       <button
-                        className="admin-btn-action admin-btn-action-delete"
+                        className={`admin-btn-action ${book.activated ? 'admin-btn-action-delete' : 'admin-btn-action-edit'}`}
+                        style={!book.activated ? { borderColor: 'var(--color-primary)', color: 'var(--color-primary)' } : {}}
                         onClick={() => onDelete(book)}
                       >
-                        Delete
+                        {book.activated ? 'Delete' : 'Restore'}
                       </button>
                     </div>
                   </td>

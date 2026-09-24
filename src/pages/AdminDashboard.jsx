@@ -1,32 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
 import api from '../services/api'
+import Navbar from '../components/Navbar'
 import '../styles/dashboard.css'
 import '../styles/catalog.css'
 
 const AdminDashboard = () => {
-  const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   // State for dashboard stats
   const [stats, setStats] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [loansList, setLoansList] = useState([])
-
-  // Handle clicking outside to close dropdown
-  useEffect(() => {
-    const handleClose = () => setShowDropdown(false)
-    window.addEventListener('click', handleClose)
-    return () => {
-      window.removeEventListener('click', handleClose)
-    }
-  }, [])
 
   // Robust date parser for String ISO, timestamp, and Spring Boot Jackson Array formats
   const parseDate = (val) => {
@@ -143,21 +131,6 @@ const AdminDashboard = () => {
     setIsLoading(false)
   }
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/books?q=${encodeURIComponent(searchQuery)}`)
-    }
-  }
-
-  // Get initials for user avatar
-  const getInitials = () => {
-    if (!user?.displayName) return 'AD'
-    const parts = user.displayName.trim().split(' ')
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-  }
-
   // Date formatter helper
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
@@ -175,88 +148,8 @@ const AdminDashboard = () => {
 
   return (
     <div className="db-container">
-      {/* Top Navigation Bar - 100% Synchronized with App Shell */}
-      <header className="fx-navbar">
-        <div className="fx-navbar-left">
-          <Link to="/dashboard" className="fx-logo-container">
-            <div className="fx-logo-icon">
-              <div className="fx-logo-bar fx-logo-bar-1"></div>
-              <div className="fx-logo-bar fx-logo-bar-2"></div>
-              <div className="fx-logo-bar fx-logo-bar-3"></div>
-            </div>
-            <span className="fx-logo-text">Library Manager</span>
-          </Link>
-        </div>
-
-        <div className="fx-navbar-middle">
-          <form onSubmit={handleSearchSubmit} className="fx-search-form">
-            <input
-              type="text"
-              className="fx-search-input"
-              placeholder="Search book, member..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </form>
-        </div>
-
-        <div className="fx-navbar-right">
-          <nav className="fx-nav-links">
-            <Link to="/dashboard" className="fx-nav-link">Home</Link>
-            <Link to="/books" className="fx-nav-link">All Books</Link>
-            <Link to="/categories" className="fx-nav-link">Categories</Link>
-            <Link to="/loans" className="fx-nav-link">My Loans</Link>
-            <Link to="/favorites" className="fx-nav-link">My Favorites</Link>
-          </nav>
-
-          {user && (
-            <div className="fx-user-menu-container">
-              <div
-                className="fx-user-avatar"
-                style={{
-                  border: '2px solid var(--color-primary)',
-                  backgroundImage: user.photoUrl ? `url(${user.photoUrl})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  cursor: 'pointer'
-                }}
-                title={user.displayName || 'Admin'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowDropdown(!showDropdown)
-                }}
-              >
-                {!user.photoUrl && getInitials()}
-              </div>
-
-              {showDropdown && (
-                <div className="fx-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                  <div className="fx-dropdown-header">
-                    <span className="fx-dropdown-name">{user.displayName || 'Administrator'}</span>
-                    <span className="fx-dropdown-email">{user.email || ''}</span>
-                    <span className="db-badge db-badge-admin" style={{ marginTop: '0.25rem', display: 'inline-block' }}>Admin</span>
-                  </div>
-
-                  <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 My Profile
-                  </Link>
-
-                  <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
-                    <span>Theme:</span>
-                    <button className="fx-theme-switch-btn" onClick={toggleTheme}>
-                      {theme === 'light' ? '☀️ Light' : '🌙 Dark'}
-                    </button>
-                  </div>
-
-                  <button className="fx-dropdown-item logout-item" onClick={logout}>
-                    Log out ➔
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+      {/* Top Navigation Bar */}
+      <Navbar />
 
       {/* Main Admin Sidebar & Content Layout */}
       <div className="db-admin-layout">

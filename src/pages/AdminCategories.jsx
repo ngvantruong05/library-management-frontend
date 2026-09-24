@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import Navbar from '../components/Navbar'
+import SearchInput from '../components/SearchInput'
 import '../styles/dashboard.css'
 
 const AdminCategories = () => {
-  const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   // Data states
@@ -23,8 +21,6 @@ const AdminCategories = () => {
   // UI States
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [searchNavbarQuery, setSearchNavbarQuery] = useState('')
   const [notification, setNotification] = useState(null)
 
   // Modal States
@@ -32,9 +28,6 @@ const AdminCategories = () => {
   const [editingCategory, setEditingCategory] = useState(null) // null = Create, categoryObj = Edit
   const [formData, setFormData] = useState({ name: '' })
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
-
-  // Ref for search debounce
-  const searchTimeoutRef = useRef(null)
 
   // Toast notification helper
   const showToast = (message, type = 'success') => {
@@ -106,13 +99,8 @@ const AdminCategories = () => {
 
   const handleSearchChange = (e) => {
     const val = e.target.value
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearchQuery(val)
-      setPage(0) // Reset to page 1
-    }, 500)
+    setSearchQuery(val)
+    setPage(0)
   }
 
   const handlePageSizeChange = (e) => {
@@ -130,21 +118,6 @@ const AdminCategories = () => {
     if (page > 0) {
       setPage(prev => prev - 1)
     }
-  }
-
-  const handleNavbarSearchSubmit = (e) => {
-    e.preventDefault()
-    if (searchNavbarQuery.trim()) {
-      setSearchQuery(searchNavbarQuery)
-      setPage(0)
-    }
-  }
-
-  const getInitials = () => {
-    if (!user?.displayName) return 'AD'
-    const parts = user.displayName.split(' ')
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
 
   // --- CRUD ACTIONS ---
@@ -235,87 +208,7 @@ const AdminCategories = () => {
       )}
 
       {/* Top Navigation Bar */}
-      <header className="fx-navbar">
-        <div className="fx-navbar-left">
-          <Link to="/dashboard" className="fx-logo-container">
-            <div className="fx-logo-icon">
-              <div className="fx-logo-bar fx-logo-bar-1"></div>
-              <div className="fx-logo-bar fx-logo-bar-2"></div>
-              <div className="fx-logo-bar fx-logo-bar-3"></div>
-            </div>
-            <span className="fx-logo-text">Library Manager</span>
-          </Link>
-        </div>
-
-        <div className="fx-navbar-middle">
-          <form onSubmit={handleNavbarSearchSubmit} className="fx-search-form">
-            <input
-              type="text"
-              className="fx-search-input"
-              placeholder="Search category..."
-              value={searchNavbarQuery}
-              onChange={(e) => setSearchNavbarQuery(e.target.value)}
-            />
-          </form>
-        </div>
-
-        <div className="fx-navbar-right">
-          <nav className="fx-nav-links">
-            <Link to="/dashboard" className="fx-nav-link">Home</Link>
-            <Link to="/books" className="fx-nav-link">All Books</Link>
-            <Link to="/categories" className="fx-nav-link">Categories</Link>
-            <Link to="/loans" className="fx-nav-link">My Loans</Link>
-            <Link to="/favorites" className="fx-nav-link">My Favorites</Link>
-          </nav>
-
-          {user && (
-            <div className="fx-user-menu-container">
-              <div
-                className="fx-user-avatar"
-                style={{
-                  border: '2px solid var(--color-primary)',
-                  backgroundImage: user.photoUrl ? `url(${user.photoUrl})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  cursor: 'pointer'
-                }}
-                title={user.displayName || 'Admin'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowDropdown(!showDropdown)
-                }}
-              >
-                {!user.photoUrl && getInitials()}
-              </div>
-
-              {showDropdown && (
-                <div className="fx-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                  <div className="fx-dropdown-header">
-                    <span className="fx-dropdown-name">{user.displayName || 'Administrator'}</span>
-                    <span className="fx-dropdown-email">{user.email || ''}</span>
-                    <span className="db-badge db-badge-admin" style={{ marginTop: '0.25rem', display: 'inline-block' }}>Admin</span>
-                  </div>
-
-                  <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 My Profile
-                  </Link>
-
-                  <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
-                    <span>Theme:</span>
-                    <button className="fx-theme-switch-btn" onClick={toggleTheme}>
-                      {theme === 'light' ? '☀️ Light' : '🌙 Dark'}
-                    </button>
-                  </div>
-
-                  <button className="fx-dropdown-item logout-item" onClick={logout}>
-                    Log out ➔
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+      <Navbar onSearch={(q) => { setSearchQuery(q); setPage(0); }} />
 
       {/* Main Admin Sidebar & Content Layout */}
       <div className="admin-books-layout">
@@ -397,12 +290,15 @@ const AdminCategories = () => {
           <div className="admin-controls-row">
             <div className="admin-control-group">
               <span className="admin-control-label">Search:</span>
-              <input
-                type="text"
-                className="admin-search-input"
+              <SearchInput
+                size="compact"
                 placeholder="Search category by ID or name..."
-                defaultValue={searchQuery}
+                value={searchQuery}
                 onChange={handleSearchChange}
+                onClear={() => {
+                  setSearchQuery('')
+                  setPage(0)
+                }}
               />
             </div>
 

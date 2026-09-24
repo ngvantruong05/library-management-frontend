@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
 import api from '../services/api'
+import Navbar from '../components/Navbar'
 import '../styles/dashboard.css'
 import '../styles/catalog.css'
 
 const Profile = () => {
-  const { user, setUser, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { user, setUser } = useAuth()
   const navigate = useNavigate()
 
   // Profile fields state
@@ -30,9 +29,7 @@ const Profile = () => {
   const [loans, setLoans] = useState([])
   const [isLoadingLoans, setIsLoadingLoans] = useState(true)
 
-  // Topbar dropdown & search
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  // Toast
   const [toast, setToast] = useState(null)
   const fileInputRef = useRef(null)
 
@@ -40,13 +37,6 @@ const Profile = () => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 4000)
   }
-
-  // Handle clicking outside to close dropdown
-  useEffect(() => {
-    const handleClose = () => setShowDropdown(false)
-    window.addEventListener('click', handleClose)
-    return () => window.removeEventListener('click', handleClose)
-  }, [])
 
   // Sync user data to local form states
   useEffect(() => {
@@ -73,13 +63,6 @@ const Profile = () => {
     }
     fetchUserLoans()
   }, [])
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/books?q=${encodeURIComponent(searchQuery)}`)
-    }
-  }
 
   // Handle Avatar file selection with 120x120 JPEG Canvas compression -> Save directly to DB via PUT /api/auth/me
   const handleFileChange = (e) => {
@@ -275,94 +258,7 @@ const Profile = () => {
       />
 
       {/* Top Navigation Bar - 100% Synchronized */}
-      <header className="fx-navbar">
-        <div className="fx-navbar-left">
-          <Link to="/dashboard" className="fx-logo-container">
-            <div className="fx-logo-icon">
-              <div className="fx-logo-bar fx-logo-bar-1"></div>
-              <div className="fx-logo-bar fx-logo-bar-2"></div>
-              <div className="fx-logo-bar fx-logo-bar-3"></div>
-            </div>
-            <span className="fx-logo-text">Library Manager</span>
-          </Link>
-        </div>
-
-        <div className="fx-navbar-middle">
-          <form onSubmit={handleSearchSubmit} className="fx-search-form">
-            <input
-              type="text"
-              className="fx-search-input"
-              placeholder="Search book, member..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </form>
-        </div>
-
-        <div className="fx-navbar-right">
-          <nav className="fx-nav-links">
-            <Link to="/dashboard" className="fx-nav-link">Home</Link>
-            <Link to="/books" className="fx-nav-link">All Books</Link>
-            <Link to="/categories" className="fx-nav-link">Categories</Link>
-            <Link to="/loans" className="fx-nav-link">My Loans</Link>
-            <Link to="/favorites" className="fx-nav-link">My Favorites</Link>
-            {isAdmin && (
-              <Link to="/admin/dashboard" className="fx-nav-link" style={{ color: 'var(--color-secondary)', fontWeight: '600' }}>
-                Admin Console
-              </Link>
-            )}
-          </nav>
-
-          {user && (
-            <div className="fx-user-menu-container">
-              <div
-                className="fx-user-avatar"
-                style={{
-                  border: '2px solid var(--color-primary)',
-                  backgroundImage: user.photoUrl ? `url(${user.photoUrl})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  cursor: 'pointer'
-                }}
-                title={user.displayName || 'Profile'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowDropdown(!showDropdown)
-                }}
-              >
-                {!user.photoUrl && getInitials()}
-              </div>
-
-              {showDropdown && (
-                <div className="fx-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                  <div className="fx-dropdown-header">
-                    <span className="fx-dropdown-name">{user.displayName || 'User'}</span>
-                    <span className="fx-dropdown-email">{user.email || ''}</span>
-                    <span className={`db-badge ${isAdmin ? 'db-badge-admin' : 'db-badge-user'}`} style={{ marginTop: '0.25rem', display: 'inline-block' }}>
-                      {isAdmin ? 'Admin' : 'Member'}
-                    </span>
-                  </div>
-
-                  <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 My Profile
-                  </Link>
-
-                  <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
-                    <span>Theme:</span>
-                    <button className="fx-theme-switch-btn" onClick={toggleTheme}>
-                      {theme === 'light' ? '☀️ Light' : '🌙 Dark'}
-                    </button>
-                  </div>
-
-                  <button className="fx-dropdown-item logout-item" onClick={logout}>
-                    Log out ➔
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Body Layout */}
       <div className={isAdmin ? 'db-admin-layout' : 'db-container'} style={!isAdmin ? { flex: 1 } : {}}>

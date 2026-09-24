@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import Navbar from '../components/Navbar'
+import SearchInput from '../components/SearchInput'
 import '../styles/dashboard.css'
 
 const AdminFines = () => {
-  const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   // State for raw data from API
@@ -24,12 +22,7 @@ const AdminFines = () => {
   // Loading and error states
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [searchNavbarQuery, setSearchNavbarQuery] = useState('')
   const [notification, setNotification] = useState(null)
-
-  // Debounce ref for search field
-  const searchTimeoutRef = useRef(null)
 
   // Show Toast notification
   const showToast = (message, type = 'success') => {
@@ -38,15 +31,6 @@ const AdminFines = () => {
       setNotification(null)
     }, 4000)
   }
-
-  // Handle closing avatar dropdown clicking outside
-  useEffect(() => {
-    const handleClose = () => setShowDropdown(false)
-    window.addEventListener('click', handleClose)
-    return () => {
-      window.removeEventListener('click', handleClose)
-    }
-  }, [])
 
   // Fetch fines on mount
   useEffect(() => {
@@ -103,13 +87,8 @@ const AdminFines = () => {
   // Handle search field input
   const handleSearchChange = (e) => {
     const val = e.target.value
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearchQuery(val)
-      setPage(0) // Reset to first page
-    }, 500)
+    setSearchQuery(val)
+    setPage(0)
   }
 
   // Handle pagination size change
@@ -130,15 +109,6 @@ const AdminFines = () => {
     }
   }
 
-  // Top navbar search submit
-  const handleNavbarSearchSubmit = (e) => {
-    e.preventDefault()
-    if (searchNavbarQuery.trim()) {
-      setSearchQuery(searchNavbarQuery)
-      setPage(0)
-    }
-  }
-
   const getInitials = (name) => {
     if (!name) return 'U'
     const parts = name.trim().split(' ')
@@ -155,7 +125,7 @@ const AdminFines = () => {
       const month = String(d.getMonth() + 1).padStart(2, '0')
       const year = d.getFullYear()
       return `${day}/${month}/${year}`
-    } catch (e) {
+    } catch {
       return dateStr
     }
   }
@@ -169,7 +139,7 @@ const AdminFines = () => {
 
   // Confirm Payment Action Handler
   const handleConfirmPayment = async (fine) => {
-    const confirmPay = window.confirm(`Confirm payment of ${formatCurrency(fine.fineAmount)} for "${fine.bookTitle}" from reader "${fine.userDisplayName || fine.userEmail}"?`)
+    const confirmPay = window.confirm(`Confirm payment of ${formatCurrency(fine.fineAmount)} for "${fine.bookTitle}" from user "${fine.userDisplayName || fine.userEmail}"?`)
     if (!confirmPay) return
 
     try {
@@ -193,87 +163,7 @@ const AdminFines = () => {
       )}
 
       {/* Top Navigation Bar */}
-      <header className="fx-navbar">
-        <div className="fx-navbar-left">
-          <Link to="/dashboard" className="fx-logo-container">
-            <div className="fx-logo-icon">
-              <div className="fx-logo-bar fx-logo-bar-1"></div>
-              <div className="fx-logo-bar fx-logo-bar-2"></div>
-              <div className="fx-logo-bar fx-logo-bar-3"></div>
-            </div>
-            <span className="fx-logo-text">Library Manager</span>
-          </Link>
-        </div>
-
-        <div className="fx-navbar-middle">
-          <form onSubmit={handleNavbarSearchSubmit} className="fx-search-form">
-            <input
-              type="text"
-              className="fx-search-input"
-              placeholder="Search fine..."
-              value={searchNavbarQuery}
-              onChange={(e) => setSearchNavbarQuery(e.target.value)}
-            />
-          </form>
-        </div>
-
-        <div className="fx-navbar-right">
-          <nav className="fx-nav-links">
-            <Link to="/dashboard" className="fx-nav-link">Home</Link>
-            <Link to="/books" className="fx-nav-link">All Books</Link>
-            <Link to="/categories" className="fx-nav-link">Categories</Link>
-            <Link to="/loans" className="fx-nav-link">My Loans</Link>
-            <Link to="/favorites" className="fx-nav-link">My Favorites</Link>
-          </nav>
-
-          {user && (
-            <div className="fx-user-menu-container">
-              <div
-                className="fx-user-avatar"
-                style={{
-                  border: '2px solid var(--color-primary)',
-                  backgroundImage: user.photoUrl ? `url(${user.photoUrl})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  cursor: 'pointer'
-                }}
-                title={user.displayName || 'Admin'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowDropdown(!showDropdown)
-                }}
-              >
-                {!user.photoUrl && getInitials(user.displayName)}
-              </div>
-
-              {showDropdown && (
-                <div className="fx-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                  <div className="fx-dropdown-header">
-                    <span className="fx-dropdown-name">{user.displayName || 'Administrator'}</span>
-                    <span className="fx-dropdown-email">{user.email || ''}</span>
-                    <span className="db-badge db-badge-admin" style={{ marginTop: '0.25rem', display: 'inline-block' }}>Admin</span>
-                  </div>
-
-                  <Link to="/profile" className="fx-dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setShowDropdown(false)}>
-                    👤 My Profile
-                  </Link>
-
-                  <div className="fx-dropdown-item" style={{ cursor: 'default' }}>
-                    <span>Theme:</span>
-                    <button className="fx-theme-switch-btn" onClick={toggleTheme}>
-                      {theme === 'light' ? '☀️ Light' : '🌙 Dark'}
-                    </button>
-                  </div>
-
-                  <button className="fx-dropdown-item logout-item" onClick={logout}>
-                    Log out ➔
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+      <Navbar onSearch={(q) => { setSearchQuery(q); setPage(0); }} />
 
       {/* Main Admin Sidebar & Content Layout */}
       <div className="admin-books-layout">
@@ -355,12 +245,15 @@ const AdminFines = () => {
           <div className="admin-controls-row">
             <div className="admin-control-group">
               <span className="admin-control-label">Search:</span>
-              <input
-                type="text"
-                className="admin-search-input"
-                placeholder="Search reader, book title..."
-                defaultValue={searchQuery}
+              <SearchInput
+                size="compact"
+                placeholder="Search user, book, fine ID..."
+                value={searchQuery}
                 onChange={handleSearchChange}
+                onClear={() => {
+                  setSearchQuery('')
+                  setPage(0)
+                }}
               />
             </div>
 
@@ -438,7 +331,7 @@ const AdminFines = () => {
                   <tr>
                     <th>Fine ID</th>
                     <th>Loan ID</th>
-                    <th>Reader</th>
+                    <th>User</th>
                     <th>Book ID</th>
                     <th>Book Cover</th>
                     <th>Book Title</th>

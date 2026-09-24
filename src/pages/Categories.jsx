@@ -4,6 +4,7 @@ import api from '../services/api'
 import Navbar from '../components/Navbar'
 import BookCard from '../components/BookCard'
 import BookDetailsModal from '../components/BookDetailsModal'
+import SearchInput from '../components/SearchInput'
 import '../styles/catalog.css'
 
 const PAGE_SIZE = 12
@@ -44,7 +45,7 @@ const Categories = () => {
 
   // Search & Filter states
   const [categorySearch, setCategorySearch] = useState('')
-  const [bookSearch, setBookSearch] = useState('')
+  const [totalLibraryBooks, setTotalLibraryBooks] = useState(73)
   const [notification, setNotification] = useState(null)
 
   // Modal states
@@ -56,14 +57,12 @@ const Categories = () => {
   const hasMoreRef = useRef(true)
   const pageRef = useRef(0)
   const selectedCatRef = useRef(null)
-  const queryRef = useRef('')
   const requestIdRef = useRef(0)
 
   isFetchingRef.current = isFetchingMore || isLoadingBooks
   hasMoreRef.current = hasMore
   pageRef.current = page
   selectedCatRef.current = selectedCategoryId
-  queryRef.current = bookSearch
 
   // Toast notification
   const showToast = (message, type = 'success') => {
@@ -95,8 +94,8 @@ const Categories = () => {
     fetchCategories()
   }, [])
 
-  // 2. Fetch Books for current category & search query with pagination
-  const fetchBooksPage = useCallback(async (pageToFetch, catId, query = '', isInitial = false) => {
+  // 2. Fetch Books for current category with pagination
+  const fetchBooksPage = useCallback(async (pageToFetch = 0, catId = null) => {
     const currentRequestId = ++requestIdRef.current
 
     if (pageToFetch === 0) {
@@ -115,9 +114,6 @@ const Categories = () => {
       }
       if (catId !== null && catId !== undefined) {
         params.categoryId = catId
-      }
-      if (query && query.trim()) {
-        params.q = query.trim()
       }
 
       const response = await api.get('/api/books', { params })
@@ -154,6 +150,9 @@ const Categories = () => {
       setPage(pageToFetch)
       setHasMore(!isLast && newItems.length > 0)
       setTotalElements(total)
+      if (catId === null && pageToFetch === 0 && total > 0) {
+        setTotalLibraryBooks(total)
+      }
     } catch (error) {
       if (currentRequestId !== requestIdRef.current) return
       console.error('Failed to fetch books:', error)
@@ -165,10 +164,10 @@ const Categories = () => {
     }
   }, [])
 
-  // Fetch books whenever selectedCategoryId or bookSearch changes
+  // Fetch books whenever selectedCategoryId changes
   useEffect(() => {
-    fetchBooksPage(0, selectedCategoryId, bookSearch, true)
-  }, [selectedCategoryId, bookSearch, fetchBooksPage])
+    fetchBooksPage(0, selectedCategoryId, true)
+  }, [selectedCategoryId, fetchBooksPage])
 
   // Sync state if URL changes
   useEffect(() => {
@@ -188,23 +187,38 @@ const Categories = () => {
     }
   }, [searchParams, categories])
 
-  // Total count across all categories
-  const totalAllBooksCount = useMemo(() => {
-    return categories.reduce((sum, c) => sum + (c.bookCount || 0), 0)
+  // Count categories that have at least 1 book
+  const categoriesWithBooksCount = useMemo(() => {
+    return categories.filter((c) => (c.bookCount || 0) > 0).length
   }, [categories])
 
-  // Filtered categories in left sidebar search input
+  // Selected Category Object
+  const selectedCategoryObj = useMemo(() => {
+    if (selectedCategoryId === null) return null
+    return categories.find((c) => c.id === selectedCategoryId)
+  }, [categories, selectedCategoryId])
+
+  // Filtered and sorted categories (active categories with books appear first)
   const filteredCategories = useMemo(() => {
     const q = categorySearch.toLowerCase().trim()
-    if (!q) return categories
-    return categories.filter((cat) => cat.name.toLowerCase().includes(q))
+    const list = q
+      ? categories.filter((cat) => cat.name.toLowerCase().includes(q))
+      : [...categories]
+
+    return list.sort((a, b) => {
+      const countA = a.bookCount || 0
+      const countB = b.bookCount || 0
+      if (countA > 0 && countB === 0) return -1
+      if (countA === 0 && countB > 0) return 1
+      if (countB !== countA) return countB - countA
+      return a.name.localeCompare(b.name)
+    })
   }, [categories, categorySearch])
 
   // Handle Category Selection
   const handleSelectCategory = (catId) => {
     if (selectedCategoryId === catId) return
     setSelectedCategoryId(catId)
-    setBookSearch('')
     if (catId === null) {
       setSearchParams({})
     } else {
@@ -216,7 +230,7 @@ const Categories = () => {
   const loadNextPage = useCallback(() => {
     if (isFetchingRef.current || !hasMoreRef.current) return
     const nextPage = pageRef.current + 1
-    fetchBooksPage(nextPage, selectedCatRef.current, queryRef.current, false)
+    fetchBooksPage(nextPage, selectedCatRef.current, false)
   }, [fetchBooksPage])
 
   useEffect(() => {
@@ -241,8 +255,9 @@ const Categories = () => {
   }
 
   // Handle borrow success notification
-  const handleBorrowSubmit = (book, type, numCopies) => {
+  const handleBorrowSubmit = () => {
     setShowDetailModal(false)
+    showToast('Borrow request placed successfully!')
   }
 
   return (
@@ -255,7 +270,7 @@ const Categories = () => {
       )}
 
       {/* Shared Header Navigation */}
-      <Navbar onSearch={(query) => setBookSearch(query)} />
+      <Navbar />
 
       {/* Main Content Explorer */}
       <main className="fx-content-container">
@@ -273,41 +288,20 @@ const Categories = () => {
             <aside className="fx-cat-sidebar">
               <div className="fx-cat-sidebar-header">
                 <h3 className="fx-cat-sidebar-title">Categories</h3>
-                <span className="fx-cat-sidebar-badge">{categories.length}</span>
+                <span className="fx-cat-sidebar-badge" title={`${categories.length} total categories, ${categoriesWithBooksCount} active with books`}>
+                  {categoriesWithBooksCount} active
+                </span>
               </div>
 
               {/* Category Search inside Sidebar */}
-              <div className="fx-cat-sidebar-search">
-                <svg
-                  className="fx-cat-search-icon"
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <input
-                  type="text"
-                  className="fx-cat-sidebar-input"
-                  placeholder="Filter category..."
+              <div style={{ marginBottom: '0.85rem' }}>
+                <SearchInput
+                  size="compact"
+                  placeholder="Filter categories..."
                   value={categorySearch}
                   onChange={(e) => setCategorySearch(e.target.value)}
+                  onClear={() => setCategorySearch('')}
                 />
-                {categorySearch && (
-                  <button
-                    type="button"
-                    className="fx-cat-sidebar-clear"
-                    onClick={() => setCategorySearch('')}
-                  >
-                    ✕
-                  </button>
-                )}
               </div>
 
               {/* Categories Scrollable List */}
@@ -320,7 +314,7 @@ const Categories = () => {
                 >
                   <span className="fx-cat-item-icon">🌟</span>
                   <span className="fx-cat-item-name">All Categories</span>
-                  <span className="fx-cat-item-count">{totalAllBooksCount}</span>
+                  <span className="fx-cat-item-count">{totalLibraryBooks}</span>
                 </button>
 
                 {filteredCategories.length === 0 ? (
@@ -353,6 +347,17 @@ const Categories = () => {
                RIGHT CONTENT: BOOKS GRID
                ==================================================================== */}
             <section className="fx-cat-main-content">
+              {/* Category Explorer Top Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    {selectedCategoryObj ? `${getCategoryIcon(selectedCategoryObj.name)} ${selectedCategoryObj.name}` : '🌟 All Categories'}
+                  </h2>
+                  <span className="fx-cat-sidebar-badge" style={{ fontSize: '0.85rem' }}>
+                    {totalElements} books
+                  </span>
+                </div>
+              </div>
               {isLoadingBooks ? (
                 /* Instant Skeleton Shimmer Grid Feedback when switching categories */
                 <div className="fx-book-grid fx-cat-books-grid">
@@ -361,7 +366,6 @@ const Categories = () => {
                       <div className="fx-skeleton-thumb"></div>
                       <div className="fx-skeleton-line fx-skeleton-line-title"></div>
                       <div className="fx-skeleton-line fx-skeleton-line-author"></div>
-                      <div className="fx-skeleton-line fx-skeleton-line-tag"></div>
                       <div className="fx-skeleton-shimmer"></div>
                     </div>
                   ))}
@@ -419,7 +423,6 @@ const Categories = () => {
                       <div className="fx-skeleton-thumb"></div>
                       <div className="fx-skeleton-line fx-skeleton-line-title"></div>
                       <div className="fx-skeleton-line fx-skeleton-line-author"></div>
-                      <div className="fx-skeleton-line fx-skeleton-line-tag"></div>
                       <div className="fx-skeleton-shimmer"></div>
                     </div>
                   ))}

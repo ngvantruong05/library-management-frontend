@@ -5,9 +5,9 @@ const AddEditBookModal = ({
   selectedBook,
   formData,
   setFormData,
-  publishers,
-  authors,
-  categories,
+  publishers = [],
+  authors = [],
+  categories = [],
   onClose,
   onSubmit,
   handleMultipleSelectChange,
@@ -21,7 +21,7 @@ const AddEditBookModal = ({
           <h2>{selectedBook ? 'Edit Book Details' : 'Add New Book'}</h2>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
-        
+
         <form onSubmit={onSubmit}>
           <div className="modal-body">
             <div className="form-row">
@@ -84,46 +84,25 @@ const AddEditBookModal = ({
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Price</label>
+                <label className="form-label">Price (VND)</label>
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
                   className="form-input"
                   min="0"
+                  placeholder="e.g. 150000"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Discount Price</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="form-input"
-                  min="0"
-                  value={formData.discountPrice}
-                  onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
                 <label className="form-label">Language</label>
                 <input
                   type="text"
                   className="form-input"
+                  placeholder="e.g. English, Vietnamese"
                   value={formData.language}
                   onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Currency Code</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={formData.currencyCode}
-                  onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value })}
                 />
               </div>
             </div>
@@ -168,7 +147,7 @@ const AddEditBookModal = ({
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Authors (Hold Ctrl/Cmd to select multiple)</label>
+                <label className="form-label">Authors</label>
                 <select
                   className="form-select"
                   multiple
@@ -181,7 +160,7 @@ const AddEditBookModal = ({
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Categories (Hold Ctrl/Cmd to select multiple)</label>
+                <label className="form-label">Categories</label>
                 <select
                   className="form-select"
                   multiple

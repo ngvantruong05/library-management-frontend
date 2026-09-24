@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import StarRating from './StarRating'
+import BookCover from './BookCover'
 
 const BookCard = ({ book, onClick, showRating = false }) => {
-  const [imgError, setImgError] = useState(false)
   const rating = book.averageRating !== undefined && book.averageRating !== null 
     ? book.averageRating 
     : (book.rating !== undefined ? book.rating : 0)
@@ -11,47 +11,25 @@ const BookCard = ({ book, onClick, showRating = false }) => {
   return (
     <div className="fx-book-card" onClick={() => onClick && onClick(book)}>
       <div className="fx-book-card-thumbnail">
-        {book.thumbnail && !imgError ? (
-          <img 
-            src={book.thumbnail} 
-            alt={book.title} 
-            className="fx-book-img" 
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="fx-book-placeholder">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-            </svg>
-            <span className="fx-placeholder-title">{book.title}</span>
-          </div>
-        )}
+        <BookCover book={book} size="card" />
       </div>
 
       <div className="fx-book-card-info">
-        <h4 className="fx-book-title" title={book.title}>{book.title}</h4>
-        
-        {showRating ? (
-          <div className="fx-rating-container">
+        <div>
+          <h4 className="fx-book-title" title={book.title}>{book.title}</h4>
+          
+          <p className="fx-book-author">
+            by {book.authors && book.authors.length > 0 ? book.authors.map(a => a.name).join(', ') : 'Unknown Author'}
+          </p>
+        </div>
+
+        {showRating && (
+          <div className="fx-rating-container" style={{ marginTop: '0.35rem' }}>
             <StarRating value={rating} readOnly={true} size="sm" />
             <span className="fx-rating-text">
               {rating > 0 ? `${rating.toFixed(1)} (${ratingCount})` : 'No reviews'}
             </span>
           </div>
-        ) : (
-          <p className="fx-book-author">
-            by {book.authors && book.authors.map(a => a.name).join(', ') || 'Unknown Author'}
-          </p>
         )}
       </div>
     </div>

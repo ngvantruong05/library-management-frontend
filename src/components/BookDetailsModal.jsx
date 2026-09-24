@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import BorrowBookModal from './BorrowBookModal'
 import StarRating from './StarRating'
+import BookCover from './BookCover'
 
 const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) => {
   const { isAuthenticated, user } = useAuth()
@@ -12,7 +13,6 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
   const [availableCopies, setAvailableCopies] = useState(book?.availableCopies ?? 5)
   const [showBorrowModal, setShowBorrowModal] = useState(false)
   const [borrowModalType, setBorrowModalType] = useState('OFFLINE')
-  const [detailImgError, setDetailImgError] = useState(false)
   
   // Rating states
   const [ratingSummary, setRatingSummary] = useState({
@@ -143,7 +143,7 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
     setEditingReviewContent(ratingItem.review || '')
   }
 
-  const handleSaveEditRating = async (id) => {
+  const handleSaveEditRating = async (_id) => {
     try {
       await api.post('/api/ratings', {
         bookId: book.id,
@@ -251,6 +251,10 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
   if (!show || !book) return null
 
   const handleBorrowOnline = () => {
+    if (book.activated === false) {
+      alert("This book is deactivated and cannot be borrowed.")
+      return
+    }
     if (!isAuthenticated) {
       requireLogin()
       return
@@ -260,6 +264,10 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
   }
 
   const handleBorrowOffline = () => {
+    if (book.activated === false) {
+      alert("This book is deactivated and cannot be borrowed.")
+      return
+    }
     if (!isAuthenticated) {
       requireLogin()
       return
@@ -283,12 +291,11 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
     }
   }
 
-  // Fallback calculations if no ratings exist in DB yet
+  // Rating calculations from real DB summary or book dto
   const hasRealRatings = ratingSummary.totalRatings > 0
-  const fallbackScore = book.rating !== undefined ? book.rating : (book.id % 2 === 0 ? 4.5 : 4.0)
-  const avgRating = hasRealRatings ? ratingSummary.averageRating : fallbackScore
-  const totalReviews = hasRealRatings ? ratingSummary.totalRatings : 8
-  const dist = hasRealRatings ? ratingSummary.distribution : { 5: 5, 4: 2, 3: 1, 2: 0, 1: 0 }
+  const avgRating = hasRealRatings ? ratingSummary.averageRating : (book.averageRating || book.rating || 0)
+  const totalReviews = hasRealRatings ? ratingSummary.totalRatings : (book.ratingCount || 0)
+  const dist = hasRealRatings ? ratingSummary.distribution : { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
 
   const hasUserRated = !!ratingSummary.currentUserRating
 
@@ -305,31 +312,7 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
             <div className="fx-detail-columns">
               {/* Left Column: Cover */}
               <div className="fx-detail-left">
-                {book.thumbnail && !detailImgError ? (
-                  <img 
-                    src={book.thumbnail} 
-                    alt={book.title} 
-                    className="fx-detail-img" 
-                    onError={() => setDetailImgError(true)}
-                  />
-                ) : (
-                  <div className="fx-detail-placeholder">
-                    <svg
-                      width="64"
-                      height="64"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                    </svg>
-                    <span>No Cover Image</span>
-                  </div>
-                )}
+                <BookCover book={book} size="details" />
               </div>
 
               {/* Right Column: Details */}
@@ -358,9 +341,15 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
                   Published by {book.publisher?.name || 'Unknown'} on {book.publishedDate || 'N/A'}
                 </p>
 
-                <p className="fx-detail-copies">
-                  Available copies: <strong>{availableCopies}</strong>
-                </p>
+                {book.activated === false ? (
+                  <p className="fx-detail-copies" style={{ color: 'var(--color-danger, #ef4444)', fontWeight: '600' }}>
+                    Status: <span style={{ textTransform: 'uppercase' }}>Deactivated / Unavailable</span>
+                  </p>
+                ) : (
+                  <p className="fx-detail-copies">
+                    Available copies: <strong>{availableCopies}</strong>
+                  </p>
+                )}
 
                 {/* Categories */}
                 <div className="fx-detail-categories">
@@ -410,15 +399,21 @@ const BookDetailsModal = ({ show, book, onClose, onBorrow, onToggleFavorite }) =
                   </div>
 
                   <div className="fx-detail-actions">
-                    <button className="fx-btn-ebook" onClick={handleBorrowOnline}>
+                    <button
+                      className={`fx-btn-ebook ${book.activated === false ? 'disabled' : ''}`}
+                      onClick={handleBorrowOnline}
+                      disabled={book.activated === false}
+                      title={book.activated === false ? 'Book is deactivated and unavailable for borrowing' : ''}
+                    >
                       Borrow E-Book
                     </button>
                     <button 
-                      className={`fx-btn-borrow-off ${availableCopies === 0 ? 'disabled' : ''}`}
+                      className={`fx-btn-borrow-off ${(availableCopies === 0 || book.activated === false) ? 'disabled' : ''}`}
                       onClick={handleBorrowOffline}
-                      disabled={availableCopies === 0}
+                      disabled={availableCopies === 0 || book.activated === false}
+                      title={book.activated === false ? 'Book is deactivated and unavailable for borrowing' : ''}
                     >
-                      Borrow
+                      {book.activated === false ? 'Unavailable' : 'Borrow'}
                     </button>
                     <button 
                       className={`fx-btn-favorite ${isFavorite ? 'active' : ''}`}

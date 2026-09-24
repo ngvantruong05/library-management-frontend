@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import Navbar from '../components/Navbar'
 import BookDetailsModal from '../components/BookDetailsModal'
+import SearchInput from '../components/SearchInput'
 import api from '../services/api'
 import '../styles/catalog.css'
 
@@ -208,7 +209,7 @@ const MyLoans = () => {
         </div>
       )}
 
-      <Navbar />
+      <Navbar onSearch={(q) => setSearchTerm(q)} />
 
       <main className="fx-content-container" style={{ maxWidth: '1300px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         <h1 className="fx-welcome-title">My Book Loans</h1>
@@ -216,12 +217,12 @@ const MyLoans = () => {
         {/* Filter & Control Bar */}
         <div className="fx-loans-toolbar">
           <div className="fx-loans-search-box">
-            <input
-              type="text"
-              className="fx-loans-search-input"
+            <SearchInput
+              size="default"
               placeholder="Search loans by book title..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onClear={() => setSearchTerm('')}
             />
             <span className="fx-loans-results-badge">{totalResults} results found</span>
           </div>

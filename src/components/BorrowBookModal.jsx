@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import BookCover from './BookCover'
 
 const BorrowBookModal = ({
   show,
@@ -49,6 +50,10 @@ const BorrowBookModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (selectedBook.activated === false) {
+      setErrorMsg('This book has been deactivated and is not available for borrowing.')
+      return
+    }
     if (borrowType === 'OFFLINE' && availableCopies <= 0) {
       setErrorMsg('No physical copies available on shelf.')
       return
@@ -87,9 +92,9 @@ const BorrowBookModal = ({
 
           {/* Book Summary Card */}
           <div className="fx-borrow-summary">
-            {selectedBook.thumbnail && (
-              <img src={selectedBook.thumbnail} alt={selectedBook.title} className="fx-borrow-thumb" />
-            )}
+            <div style={{ width: '48px', height: '68px', flexShrink: 0, borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}>
+              <BookCover book={selectedBook} size="thumb" />
+            </div>
             <div className="fx-borrow-info">
               <h4 className="fx-borrow-book-title">{selectedBook.title}</h4>
               <p className="fx-borrow-book-author">
